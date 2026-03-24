@@ -9,3 +9,4 @@ __pycache__/
 .vscode/
 *.log
 video_intelligence_prd.md
+output/

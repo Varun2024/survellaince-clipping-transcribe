@@ -10,6 +10,7 @@ from pipelines.segmenter import build_segments
 from pipelines.clipper import clip_segments
 from pipelines.transcriber import transcribe_clips
 from pipelines.report import generate_report
+from pipelines.pose_fatigue import analyze_pose_and_fatigue
 
 
 def load_env_defaults():
@@ -59,6 +60,10 @@ def main():
 
     # 4) Clip segments
     clip_paths = clip_segments(str(input_path), str(segments_json), str(clips_dir), fps=frame_rate)
+
+    # 4.5) Pose and Fatigue Analysis (MediaPipe)
+    pose_fatigue_json = output_dir / "pose_fatigue.json"
+    analyze_pose_and_fatigue(str(frames_dir), str(pose_fatigue_json))
 
     # 5) Transcription
     index_path = transcribe_clips(clip_paths, str(transcripts_dir), os.environ.get("WHISPER_MODEL_PATH"))

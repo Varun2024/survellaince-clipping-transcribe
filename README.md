@@ -1,43 +1,126 @@
-- Video Intelligence Offline MVP
+# Surveillance Video Event Detection Pipeline
 
-Structured, open-source MVP for an offline video intelligence pipeline focused on long videos (1–2 hours) and driver-behavior analysis. The stack is designed to be modular, replaceable, and usable without cloud dependencies.
+A modular, offline pipeline for processing long surveillance videos (1–2 hours) to detect events, segment video, generate clips, transcribe audio, and produce human-readable reports. Designed for easy integration of real models (YOLOv8, Whisper) and local, cloud-free operation.
 
-This repository provides a minimal, end-to-end offline pipeline with placeholders for API keys. It supports plugging in real models (YOLOv8, Whisper) while preserving a stable orchestration layer. Replace or upgrade components as needed without changing the surrounding pipeline shape.
+---
 
-Table of contents
-- Developer-Focused Readme
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Project Structure](#project-structure)
+- [Quickstart](#quickstart)
+- [Pipeline Stages](#pipeline-stages)
+- [Configuration](#configuration)
+- [Output Artifacts](#output-artifacts)
+- [Testing](#testing)
+- [Extending with Real Models](#extending-with-real-models)
+- [Contributing](#contributing)
+- [License](#license)
 
-Overview
-- This repository implements an offline Video Intelligence MVP intended for fellow developers. The stack is modular, open-source, and designed to be incrementally replaced with real-model components (YOLOv8, Whisper, etc.) without changing the orchestration layer.
-- All heavy dependencies and secrets live behind the .env file. Keys are not committed.
+---
 
-Quickstart (dev environment)
-- Prerequisites: Python 3.8+, FFmpeg installed and on PATH
-- Setup:
-  ```bash
-  python -m venv venv
-  source venv/bin/activate  # Windows: .\venv\Scripts\activate
-  pip install -r requirements.txt
-  ```
-- Run the MVP pipeline:
-  ```bash
-  python main.py --input path/to/input_video.mp4 --output output
-  ```
-- Outputs will appear under the output directory:
-  - frames/, detections.json, segments.json, clips/
-  - transcripts/, transcripts_index.json
-  - report.txt
+## Project Overview
+This repository implements an end-to-end, developer-friendly pipeline for offline video intelligence, focusing on event detection and driver behavior analysis. The stack is modular and open-source, allowing you to swap in real models or use MVP placeholders. All orchestration is handled locally—no cloud dependencies.
 
-Project layout
-- pipelines/ - module implementations: ingest.py, detect.py, segmenter.py, clipper.py, transcriber.py, report.py
-- main.py - orchestrator
-- tests/ - unit tests and small integration helpers
-- .env - environment configuration for paths and keys
-- README.md - this developer-focused documentation
-- requirements.txt - Python dependencies to wire in real models
+## Project Structure
+```
+main.py                  # Pipeline orchestrator CLI
+pipelines/
+  ingest.py              # Frame extraction
+  detect.py              # Object/event detection
+  segmenter.py           # Temporal segmentation
+  clipper.py             # Video clipping
+  transcriber.py         # Audio transcription
+  report.py              # Report generation
+output/
+  frames/                # Extracted frames
+  detections.json        # Detection results
+  segments.json          # Video segments
+  clips/                 # Video clips per segment
+  transcripts/           # Per-clip transcripts
+  transcripts_index.json # Index of transcripts
+  report.txt             # Final report
+requirements.txt         # Python dependencies
+README.md                # This documentation
+tests/                   # Unit tests
+video_intelligence_prd.md# Product notes
+```
 
-Data contracts (inter-module interfaces)
-- detections.json (produced by pipelines/detect.py)
+## Quickstart
+### Prerequisites
+- Python 3.8+ (tested with 3.10+)
+- FFmpeg installed and on PATH
+- (Optional) CUDA-enabled GPU for real model inference
+
+### Setup
+```powershell
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### Run the Pipeline
+```powershell
+python main.py --input path\to\input_video.mp4 --output output
+```
+- All outputs will appear in the `output/` directory.
+
+## Pipeline Stages
+1. **Ingest** (`pipelines/ingest.py`): Extracts frames from video using FFmpeg.
+2. **Detect** (`pipelines/detect.py`): Runs YOLOv8 (if configured) or uses MVP detections.
+3. **Segment** (`pipelines/segmenter.py`): Groups detections into temporal segments.
+4. **Clip** (`pipelines/clipper.py`): Cuts video into segment clips.
+5. **Transcribe** (`pipelines/transcriber.py`): Transcribes audio per clip using Whisper or placeholder.
+6. **Report** (`pipelines/report.py`): Generates a human-readable report.
+
+## Configuration
+- All runtime options and model paths are set in a `.env` file (not committed).
+- Example keys:
+  - `YOLO_MODEL_PATH`: Path to YOLO model (.pt)
+  - `WHISPER_MODEL_PATH`: Path to Whisper model
+  - `OPENAI_API_KEY`, `QWEN_API_KEY`: For future LLM integrations
+  - `FFMPEG_BIN`: Override FFmpeg binary path
+  - `FRAME_RATE`: Frames per second (default 1)
+  - `OUTPUT_DIR`: Output directory (default `./output`)
+
+## Output Artifacts
+- `frames/`: Extracted frames
+- `detections.json`: List of detections per frame
+- `segments.json`: Temporal segments
+- `clips/`: Video clips for each segment
+- `transcripts/`: Transcript files per clip
+- `transcripts_index.json`: Index mapping clips to transcripts
+- `report.txt`: Final summary report
+
+### Example: `detections.json`
+```json
+{
+  "video_frames": 3600,
+  "detections": [
+    {"frame": "frame_000001.jpg", "label": "phone", "score": 0.85, "bbox": [x1, y1, x2, y2]}
+  ]
+}
+```
+
+## Testing
+- Unit tests are in `tests/` (e.g., `test_ingest.py`, `test_transcriber.py`).
+- Run all tests:
+```powershell
+pytest
+```
+
+## Extending with Real Models
+- **YOLOv8**: Install Ultralytics (`pip install ultralytics`), set `YOLO_MODEL_PATH` in `.env`.
+- **Whisper**: Install Whisper, set `WHISPER_MODEL_PATH` in `.env`.
+- The pipeline will use real models if paths are set; otherwise, it uses MVP logic.
+
+## Contributing
+- Fork and submit PRs with focused changes.
+- Add/modify tests for new features.
+- Update documentation as needed.
+- Do not commit secrets or environment-specific paths.
+
+## License
+MIT (or your preferred license)
   - {
       "video_frames": <int>,
       "detections": [
@@ -286,5 +369,6 @@ Notes
 - This MVP uses a guarded approach: if a real model is unavailable, it falls back to deterministic, lightweight detections to allow end-to-end testing and iteration.
 - All sensitive keys belong in .env; do not commit real keys.
 # event-extraction-rail
-#   s u r v e l l a i n c e - c l i p p i n g - t r a n s c r i b e  
+#   s u r v e l l a i n c e - c l i p p i n g - t r a n s c r i b e 
+ 
  
