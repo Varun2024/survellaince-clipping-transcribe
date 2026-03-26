@@ -1,1 +1,4 @@
 Video Intelligence Report (MVP)
+
+Segment 1: frames 1-54
+  Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_001.txt

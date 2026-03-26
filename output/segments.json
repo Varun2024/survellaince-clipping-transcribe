@@ -1,5 +1,10 @@
 {
   "video": "output",
   "fps": 1,
-  "segments": []
+  "segments": [
+    {
+      "start_frame": 1,
+      "end_frame": 54
+    }
+  ]
 }
