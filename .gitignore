@@ -1,0 +1,11 @@
+.venv
+.env
+sample.mp4
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+.idea/
+.vscode/
+*.log
+video_intelligence_prd.md
