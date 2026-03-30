@@ -30,6 +30,8 @@ def run_detection(frames_dir: str, model_path: str, results_path: str = None) ->
     frames_p = Path(frames_dir)
     results = {"video_frames": len(list(frames_p.glob("frame_*.jpg"))), "detections": []}
 
+    conf_threshold = float(os.environ.get("DETECTION_CONF_THRESHOLD", "0.35"))
+
     detections: List[Dict[str, Any]] = []
     model = None
     if model_path and Path(model_path).exists():
@@ -65,6 +67,8 @@ def run_detection(frames_dir: str, model_path: str, results_path: str = None) ->
                                         lbl = label[int(cls)]  # type: ignore
                                     else:
                                         lbl = str(int(cls))
+                                    if float(conf) < conf_threshold:
+                                        continue
                                     detections.append({
                                         "frame": Path(frame_path).name,
                                         "label": lbl,
@@ -98,5 +102,5 @@ def run_detection(frames_dir: str, model_path: str, results_path: str = None) ->
     with open(results_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
 
-    print(f"Detections written to {results_path}")
+    print(f"Detections written to {results_path} (conf >= {conf_threshold})")
     return results_path

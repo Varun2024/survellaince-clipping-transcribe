@@ -11,6 +11,7 @@ from pipelines.clipper import clip_segments
 from pipelines.transcriber import transcribe_clips
 from pipelines.report import generate_report
 from pipelines.pose_fatigue import analyze_pose_and_fatigue
+from pipelines.alerts import generate_alerts
 
 
 def load_env_defaults():
@@ -44,8 +45,11 @@ def main():
     clips_dir = output_dir / "clips"
     transcripts_dir = output_dir / "transcripts"
     report_path = output_dir / "report.txt"
+    alerts_path = output_dir / "alerts.json"
 
     frame_rate = int(os.environ.get("FRAME_RATE", "1"))
+    segment_gap = int(os.environ.get("SEGMENT_GAP", "5"))
+    min_segment_frames = int(os.environ.get("MIN_SEGMENT_FRAMES", "5"))
 
     print(f"Starting MVP pipeline for {input_path}")
 
@@ -56,7 +60,12 @@ def main():
     run_detection(str(frames_dir), os.environ.get("YOLO_MODEL_PATH", ""), str(results_json))
 
     # 3) Build segments
-    build_segments(str(results_json), fps=frame_rate, segment_gap=5, min_segment_frames=5)
+    build_segments(
+        str(results_json),
+        fps=frame_rate,
+        segment_gap=segment_gap,
+        min_segment_frames=min_segment_frames,
+    )
 
     # 4) Clip segments
     clip_paths = clip_segments(str(input_path), str(segments_json), str(clips_dir), fps=frame_rate)
@@ -65,11 +74,26 @@ def main():
     pose_fatigue_json = output_dir / "pose_fatigue.json"
     analyze_pose_and_fatigue(str(frames_dir), str(pose_fatigue_json))
 
+    # 4.7) Alerts
+    generate_alerts(
+        detections_path=str(results_json),
+        fatigue_path=str(pose_fatigue_json),
+        alerts_path=str(alerts_path),
+        fps=frame_rate,
+    )
+
     # 5) Transcription
-    index_path = transcribe_clips(clip_paths, str(transcripts_dir), os.environ.get("WHISPER_MODEL_PATH"))
+    index_path = transcribe_clips(clip_paths, str(transcripts_dir), os.environ.get("WHISPER_MODEL_PATH", "small"))
 
     # 6) Reporting
-    report = generate_report(str(segments_json), str(index_path), str(report_path))
+    report = generate_report(
+        str(segments_json),
+        str(index_path),
+        str(report_path),
+        pose_fatigue_path=str(pose_fatigue_json),
+        detections_path=str(results_json),
+        alerts_path=str(alerts_path),
+    )
     print("Pipeline complete. Report:", report)
 
 if __name__ == "__main__":

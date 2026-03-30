@@ -1,4 +1,16 @@
 Video Intelligence Report (MVP)
 
-Segment 1: frames 1-99
+Overview
+- Total frames sampled: 7
+- Total detections: 10
+- Total segments: 1
+
+Fatigue Metrics
+- Blink frames: 0/7
+- Microsleep frames: 0/7
+- Yawn frames: 0/7
+- Head nod frames: 0/7
+- Slouch frames: 2/7
+
+Segment 1: frames 1-7
   Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_001.txt
