@@ -78,6 +78,7 @@ def main():
     generate_alerts(
         detections_path=str(results_json),
         fatigue_path=str(pose_fatigue_json),
+        segments_path=str(segments_json),
         alerts_path=str(alerts_path),
         fps=frame_rate,
     )

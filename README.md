@@ -93,13 +93,25 @@ Alerting:
 The report now includes:
 
 - Overall counts (frames, detections, segments)
+- Detection confidence analytics (min/avg/max, P50/P90/P95, top labels)
 - Fatigue metrics (blink, microsleep, yawn, nod, slouch)
 - Segment transcript references
 - Alert summary with severity labels
+- Per-segment risk summary (severity, fatigue score, high-risk hits)
+
+`alerts.json` now includes:
+
+- Global alerts for the full video
+- `segment_alerts` entries mapped by segment (`segment_id`, `start_frame`, `end_frame`)
 
 ## Notes
 
 - If detections span most frames, clips may still be long; tune `DETECTION_CONF_THRESHOLD`, `SEGMENT_GAP`, and `MIN_SEGMENT_FRAMES`.
+- Current tuned defaults in `.env` are set for shorter/cleaner clips on typical real videos:
+  - `DETECTION_CONF_THRESHOLD=0.45`
+  - `SEGMENT_GAP=2`
+  - `MIN_SEGMENT_FRAMES=8`
+  - `FATIGUE_ALERT_FRAME_RATIO=0.10`
 - Keep secrets out of source control and use local `.env` values.
 
 ## License

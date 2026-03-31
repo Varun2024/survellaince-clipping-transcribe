@@ -2,11 +2,7 @@ import os
 import subprocess
 from pathlib import Path
 
-
-def ensure_dir(path: str) -> Path:
-    p = Path(path)
-    p.mkdir(parents=True, exist_ok=True)
-    return p
+from pipelines.utils import ensure_dir
 
 
 def ingest_video(input_path: str, frames_dir: str, frame_rate: int = 1, width: int = 1280, height: int = 720) -> Path:

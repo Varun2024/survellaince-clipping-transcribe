@@ -1,16 +1,24 @@
 Video Intelligence Report (MVP)
 
 Overview
-- Total frames sampled: 7
-- Total detections: 10
+- Total frames sampled: 8
+- Total detections: 8
 - Total segments: 1
 
-Fatigue Metrics
-- Blink frames: 0/7
-- Microsleep frames: 0/7
-- Yawn frames: 0/7
-- Head nod frames: 0/7
-- Slouch frames: 2/7
+Detection Confidence
+- Min/Avg/Max: 0.805/0.868/0.888
+- P50/P90/P95: 0.877/0.888/0.888
+- Top labels: 0(8)
 
-Segment 1: frames 1-7
+Fatigue Metrics
+- Blink frames: 0/8
+- Microsleep frames: 0/8
+- Yawn frames: 0/8
+- Head nod frames: 0/8
+- Slouch frames: 3/8
+
+Segment 1: frames 1-8
   Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_001.txt
+
+Segment Risk Summary
+- Segment 1 [LOW] fatigue_score=0.000, high_risk_hits=0, microsleep=0, yawn=0

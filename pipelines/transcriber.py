@@ -1,12 +1,12 @@
-import json
 import os
 from pathlib import Path
 from typing import List
 
+from pipelines.utils import ensure_dir, write_json
+
 
 def transcribe_clips(clips: List[str], transcripts_dir: str, whisper_model_path: str = None) -> str:
-    transcripts_dir_p = Path(transcripts_dir)
-    transcripts_dir_p.mkdir(parents=True, exist_ok=True)
+    transcripts_dir_p = ensure_dir(transcripts_dir)
 
     # Try to use Whisper if available; otherwise generate simple placeholder transcripts
     transcripts_index = []
@@ -43,7 +43,6 @@ def transcribe_clips(clips: List[str], transcripts_dir: str, whisper_model_path:
         transcripts_index.append({"clip": clip_path, "transcript": str(transcript_file)})
 
     index_path = str(transcripts_dir_p / "transcripts_index.json")
-    with open(index_path, "w", encoding="utf-8") as f:
-        json.dump(transcripts_index, f, indent=2)
+    write_json(index_path, transcripts_index)
     print(f"Transcripts written to {transcripts_dir_p}, index at {index_path}")
     return index_path

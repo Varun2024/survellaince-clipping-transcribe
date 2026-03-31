@@ -1,15 +1,17 @@
 import os
-import json
 import subprocess
 from pathlib import Path
+
+from pipelines.utils import ensure_dir, read_json
 
 
 def clip_segments(video_path: str, segments_path: str, output_dir: str, fps: int = 1) -> list:
     video = Path(video_path)
-    segments = json.loads(Path(segments_path).read_text(encoding="utf-8"))
+    segments = read_json(segments_path, {"segments": []})
     clips = []
-    out_dir = Path(output_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = ensure_dir(output_dir)
+    ffmpeg = os.environ.get("FFMPEG_BIN", "ffmpeg")
+    clip_reencode = os.environ.get("CLIP_REENCODE", "1") == "1"
 
     for i, seg in enumerate(segments.get("segments", []), start=1):
         start_frame = seg.get("start_frame", 0)
@@ -17,15 +19,28 @@ def clip_segments(video_path: str, segments_path: str, output_dir: str, fps: int
         start_sec = max(0.0, (start_frame - 1) / float(fps))
         duration = max(0.0, (end_frame - start_frame + 1) / float(fps))
         out_path = out_dir / f"segment_{i:03d}.mp4"
-        cmd = [
-            "ffmpeg",
-            "-y",
-            "-i", str(video),
-            "-ss", str(start_sec),
-            "-t", str(duration),
-            "-c", "copy",
-            str(out_path),
-        ]
+        if clip_reencode:
+            cmd = [
+                ffmpeg,
+                "-y",
+                "-ss", str(start_sec),
+                "-t", str(duration),
+                "-i", str(video),
+                "-c:v", "libx264",
+                "-c:a", "aac",
+                "-movflags", "+faststart",
+                str(out_path),
+            ]
+        else:
+            cmd = [
+                ffmpeg,
+                "-y",
+                "-ss", str(start_sec),
+                "-t", str(duration),
+                "-i", str(video),
+                "-c", "copy",
+                str(out_path),
+            ]
         print(f"Clipping segment {i}: {start_sec:.2f}s for {duration:.2f}s -> {out_path}")
         subprocess.run(cmd, check=True)
         clips.append(str(out_path))

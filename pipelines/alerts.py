@@ -1,23 +1,18 @@
-import json
 import os
-from pathlib import Path
 from typing import Dict, Any, List
 
-
-def _load_json(path: str, default: Any) -> Any:
-    if not path or not Path(path).exists():
-        return default
-    return json.loads(Path(path).read_text(encoding="utf-8"))
-
+from pipelines.utils import read_json, write_json, frame_name_to_number
 
 def generate_alerts(
     detections_path: str,
     fatigue_path: str,
+    segments_path: str,
     alerts_path: str,
     fps: int = 1,
 ) -> str:
-    detections_data = _load_json(detections_path, {"detections": []})
-    fatigue_data = _load_json(fatigue_path, [])
+    detections_data = read_json(detections_path, {"detections": []})
+    fatigue_data = read_json(fatigue_path, [])
+    segments_data = read_json(segments_path, {"segments": []})
 
     fatigue_frame_threshold = float(os.environ.get("FATIGUE_ALERT_FRAME_RATIO", "0.15"))
     max_microsleep_events = int(os.environ.get("MAX_MICROSLEEP_EVENTS", "0"))
@@ -30,6 +25,22 @@ def generate_alerts(
 
     detections = detections_data.get("detections", []) or []
     total_frames = int(detections_data.get("video_frames", 0))
+
+    frame_to_detections: Dict[int, List[Dict[str, Any]]] = {}
+    for det in detections:
+        frame_name = str(det.get("frame", ""))
+        frame_num = frame_name_to_number(frame_name)
+        if frame_num <= 0:
+            continue
+        frame_to_detections.setdefault(frame_num, []).append(det)
+
+    frame_to_fatigue: Dict[int, Dict[str, Any]] = {}
+    for row in fatigue_data:
+        frame_name = str(row.get("frame", ""))
+        frame_num = frame_name_to_number(frame_name)
+        if frame_num <= 0:
+            continue
+        frame_to_fatigue[frame_num] = row
 
     high_risk_hits = []
     for det in detections:
@@ -94,6 +105,56 @@ def generate_alerts(
             }
         )
 
+    segment_alerts: List[Dict[str, Any]] = []
+    for idx, seg in enumerate(segments_data.get("segments", []) or [], start=1):
+        start_frame = int(seg.get("start_frame", 0))
+        end_frame = int(seg.get("end_frame", 0))
+        if start_frame <= 0 or end_frame < start_frame:
+            continue
+
+        det_count = 0
+        high_risk_count = 0
+        microsleep_count = 0
+        yawn_count = 0
+        head_nod_count = 0
+        slouch_count = 0
+
+        for f in range(start_frame, end_frame + 1):
+            frame_dets = frame_to_detections.get(f, [])
+            det_count += len(frame_dets)
+            high_risk_count += sum(1 for d in frame_dets if str(d.get("label", "")).lower() in high_risk_labels)
+
+            fatigue_row = frame_to_fatigue.get(f, {})
+            microsleep_count += int(bool(fatigue_row.get("microsleep")))
+            yawn_count += int(bool(fatigue_row.get("yawn")))
+            head_nod_count += int(bool(fatigue_row.get("head_nod")))
+            slouch_count += int(bool(fatigue_row.get("slouch")))
+
+        seg_len = end_frame - start_frame + 1
+        fatigue_score = (microsleep_count + yawn_count + head_nod_count) / max(1, seg_len)
+        severity = "low"
+        if fatigue_score >= fatigue_frame_threshold or microsleep_count > max_microsleep_events:
+            severity = "high"
+        elif yawn_count > max_yawn_events or high_risk_count > 0:
+            severity = "medium"
+
+        segment_alerts.append(
+            {
+                "segment_id": idx,
+                "start_frame": start_frame,
+                "end_frame": end_frame,
+                "duration_sec": round(seg_len / max(1, fps), 2),
+                "severity": severity,
+                "detections": det_count,
+                "high_risk_hits": high_risk_count,
+                "microsleep_frames": microsleep_count,
+                "yawn_frames": yawn_count,
+                "head_nod_frames": head_nod_count,
+                "slouch_frames": slouch_count,
+                "fatigue_score": round(fatigue_score, 4),
+            }
+        )
+
     payload = {
         "summary": {
             "video_frames": total_frames,
@@ -104,12 +165,12 @@ def generate_alerts(
             "head_nod_frames": head_nod_frames,
             "slouch_frames": slouch_frames,
             "fatigue_ratio": round(fatigue_ratio, 4),
+            "segments_analyzed": len(segment_alerts),
         },
         "alerts": alerts,
+        "segment_alerts": segment_alerts,
     }
 
-    out = Path(alerts_path)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    out = write_json(alerts_path, payload)
     print(f"Alerts written to {alerts_path} ({len(alerts)} alert(s))")
     return str(out)

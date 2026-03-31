@@ -1,11 +1,11 @@
-import json
 from pathlib import Path
 from typing import List, Dict, Any
 
+from pipelines.utils import read_json, write_json, frame_name_to_number
+
 
 def load_detections(detections_path: str) -> Dict[str, Any]:
-    with open(detections_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return read_json(detections_path, {"detections": []})
 
 
 def build_segments(detections_path: str, fps: int = 1, segment_gap: int = 5, min_segment_frames: int = 5) -> str:
@@ -16,18 +16,14 @@ def build_segments(detections_path: str, fps: int = 1, segment_gap: int = 5, min
     frames = sorted(frame_to_has_detection.keys())
 
     # Extract frame numbers
-    frame_numbers = []
-    for f in frames:
-        frame_num = int(f.split("frame_")[-1].split(".jpg")[0])
-        frame_numbers.append(frame_num)
+    frame_numbers = [n for n in (frame_name_to_number(f) for f in frames) if n > 0]
 
     segments: List[Dict[str, Any]] = []
     if not frame_numbers:
         # No detections
         segments_path = str(Path(detections_path).parent / "segments.json")
         output = {"video": Path(detections_path).parent.name, "fps": fps, "segments": []}
-        with open(segments_path, "w", encoding="utf-8") as f:
-            json.dump(output, f, indent=2)
+        write_json(segments_path, output)
         print(f"Segments written to {segments_path}")
         return segments_path
 
@@ -60,7 +56,6 @@ def build_segments(detections_path: str, fps: int = 1, segment_gap: int = 5, min
         "segments": segments,
     }
     segments_path = str(Path(detections_path).parent / "segments.json")
-    with open(segments_path, "w", encoding="utf-8") as f:
-        json.dump(output, f, indent=2)
+    write_json(segments_path, output)
     print(f"Segments written to {segments_path}")
     return segments_path
