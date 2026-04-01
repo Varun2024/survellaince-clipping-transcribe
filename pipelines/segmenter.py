@@ -15,43 +15,29 @@ def build_segments(detections_path: str, fps: int = 1, segment_gap: int = 5, min
     frame_to_has_detection = {d["frame"]: d for d in detections if d.get("frame")}
     frames = sorted(frame_to_has_detection.keys())
 
-    # Extract frame numbers
-    frame_numbers = []
-    for f in frames:
-        frame_num = int(f.split("frame_")[-1].split(".jpg")[0])
-        frame_numbers.append(frame_num)
-
     segments: List[Dict[str, Any]] = []
-    if not frame_numbers:
-        # No detections
-        segments_path = str(Path(detections_path).parent / "segments.json")
-        output = {"video": Path(detections_path).parent.name, "fps": fps, "segments": []}
-        with open(segments_path, "w", encoding="utf-8") as f:
-            json.dump(output, f, indent=2)
-        print(f"Segments written to {segments_path}")
-        return segments_path
-
-    # Group frames into segments, breaking on gaps
-    current_segment_start = frame_numbers[0]
-    current_segment_end = frame_numbers[0]
-
-    for i in range(1, len(frame_numbers)):
-        frame_gap = frame_numbers[i] - frame_numbers[i-1]
-        if frame_gap <= segment_gap:
-            # Continue the segment
-            current_segment_end = frame_numbers[i]
+    current = None
+    for f in frames:
+        detected = f in frame_to_has_detection
+        if detected:
+            if current is None:
+                start = int(f.split("frame_")[-1].split(".jpg")[0])
+                current = {"start_frame": start, "end_frame": start}
+            else:
+                end = int(f.split("frame_")[-1].split(".jpg")[0])
+                current["end_frame"] = end
         else:
-            # Gap detected, finalize current segment and start a new one
-            length = current_segment_end - current_segment_start + 1
-            if length >= min_segment_frames:
-                segments.append({"start_frame": current_segment_start, "end_frame": current_segment_end})
-            current_segment_start = frame_numbers[i]
-            current_segment_end = frame_numbers[i]
+            if current is not None:
+                length = current["end_frame"] - current["start_frame"] + 1
+                if length >= min_segment_frames:
+                    segments.append(current)
+                current = None
 
     # Finalize last segment
-    length = current_segment_end - current_segment_start + 1
-    if length >= min_segment_frames:
-        segments.append({"start_frame": current_segment_start, "end_frame": current_segment_end})
+    if current is not None:
+        length = current["end_frame"] - current["start_frame"] + 1
+        if length >= min_segment_frames:
+            segments.append(current)
 
     # Save segments
     output = {
