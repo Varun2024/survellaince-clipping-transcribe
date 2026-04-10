@@ -3,6 +3,12 @@ from typing import Dict, Any, List
 
 from pipelines.utils import read_json, write_json, frame_name_to_number
 
+
+def _frame_time(frame_number: int, fps: int) -> float:
+    if frame_number <= 0 or fps <= 0:
+        return 0.0
+    return max(0.0, (frame_number - 1) / float(fps))
+
 def generate_alerts(
     detections_path: str,
     fatigue_path: str,
@@ -143,6 +149,8 @@ def generate_alerts(
                 "segment_id": idx,
                 "start_frame": start_frame,
                 "end_frame": end_frame,
+                "start_time_sec": round(float(seg.get("start_time_sec", _frame_time(start_frame, fps))), 3),
+                "end_time_sec": round(float(seg.get("end_time_sec", max(_frame_time(start_frame, fps), end_frame / max(1, fps)))), 3),
                 "duration_sec": round(seg_len / max(1, fps), 2),
                 "severity": severity,
                 "detections": det_count,

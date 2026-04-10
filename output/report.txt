@@ -1,24 +1,59 @@
 Video Intelligence Report (MVP)
 
 Overview
-- Total frames sampled: 8
-- Total detections: 8
-- Total segments: 1
+- Total frames sampled: 99
+- Total significant detections: 4
+- Significant labels used: cell phone, laptop, phone
+- Total segments: 10
 
-Detection Confidence
-- Min/Avg/Max: 0.805/0.868/0.888
-- P50/P90/P95: 0.877/0.888/0.888
-- Top labels: 0(8)
+Detection Confidence (Significant Events)
+- Min/Avg/Max: 0.581/0.616/0.668
+- P50/P90/P95: 0.613/0.668/0.668
+- Top labels: cell phone(4)
 
 Fatigue Metrics
-- Blink frames: 0/8
-- Microsleep frames: 0/8
-- Yawn frames: 0/8
-- Head nod frames: 0/8
-- Slouch frames: 3/8
+- Blink frames: 0/99
+- Microsleep frames: 0/99
+- Yawn frames: 0/99
+- Head nod frames: 0/99
+- Slouch frames: 9/99
 
-Segment 1: frames 1-8
+Segment 1: frames 1-3 | time 00:00.00 -> 00:03.00 | label cell phone | severity LOW
   Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_001.txt
+Segment 2: frames 4-6 | time 00:03.00 -> 00:06.00 | label cell phone | severity LOW
+  Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_002.txt
+Segment 3: frames 7-9 | time 00:06.00 -> 00:09.00 | label cell phone | severity LOW
+  Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_003.txt
+Segment 4: frames 15-17 | time 00:14.00 -> 00:17.00 | label fatigue_slouch | severity MEDIUM
+  Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_004.txt
+Segment 5: frames 50-55 | time 00:49.00 -> 00:55.00 | label fatigue_slouch | severity MEDIUM
+  Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_005.txt
+Segment 6: frames 56-58 | time 00:55.00 -> 00:58.00 | label fatigue_slouch | severity MEDIUM
+  Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_006.txt
+Segment 7: frames 70-72 | time 01:09.00 -> 01:12.00 | label fatigue_slouch | severity MEDIUM
+  Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_007.txt
+Segment 8: frames 74-76 | time 01:13.00 -> 01:16.00 | label fatigue_slouch | severity MEDIUM
+  Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_008.txt
+Segment 9: frames 77-79 | time 01:16.00 -> 01:19.00 | label fatigue_slouch | severity MEDIUM
+  Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_009.txt
+Segment 10: frames 90-92 | time 01:29.00 -> 01:32.00 | label fatigue_slouch | severity MEDIUM
+  Transcript: D:\projects\ml pojects\event_detect_railway\output\transcripts\segment_010.txt
+
+Behavior Anomaly Events
+- fatigue_slouch: 7 occurrence(s)
+- cell phone: 3 occurrence(s)
+
+Alerts
+- [MEDIUM] Detected 4 high-risk object hits.
 
 Segment Risk Summary
-- Segment 1 [LOW] fatigue_score=0.000, high_risk_hits=0, microsleep=0, yawn=0
+- Segment 1 [MEDIUM] fatigue_score=0.000, high_risk_hits=2, microsleep=0, yawn=0
+- Segment 2 [MEDIUM] fatigue_score=0.000, high_risk_hits=1, microsleep=0, yawn=0
+- Segment 3 [MEDIUM] fatigue_score=0.000, high_risk_hits=1, microsleep=0, yawn=0
+- Segment 4 [LOW] fatigue_score=0.000, high_risk_hits=0, microsleep=0, yawn=0
+- Segment 5 [LOW] fatigue_score=0.000, high_risk_hits=0, microsleep=0, yawn=0
+- Segment 6 [LOW] fatigue_score=0.000, high_risk_hits=0, microsleep=0, yawn=0
+- Segment 7 [LOW] fatigue_score=0.000, high_risk_hits=0, microsleep=0, yawn=0
+- Segment 8 [LOW] fatigue_score=0.000, high_risk_hits=0, microsleep=0, yawn=0
+- Segment 9 [LOW] fatigue_score=0.000, high_risk_hits=0, microsleep=0, yawn=0
+- Segment 10 [LOW] fatigue_score=0.000, high_risk_hits=0, microsleep=0, yawn=0

@@ -4,7 +4,133 @@
   "segments": [
     {
       "start_frame": 1,
-      "end_frame": 8
+      "end_frame": 3,
+      "start_time_sec": 0.0,
+      "end_time_sec": 3.0,
+      "event_label": "cell phone",
+      "event_id": 1,
+      "event_priority": 1,
+      "event_severity": "low"
+    },
+    {
+      "start_frame": 4,
+      "end_frame": 6,
+      "start_time_sec": 3.0,
+      "end_time_sec": 6.0,
+      "event_label": "cell phone",
+      "event_id": 2,
+      "event_priority": 1,
+      "event_severity": "low"
+    },
+    {
+      "start_frame": 7,
+      "end_frame": 9,
+      "start_time_sec": 6.0,
+      "end_time_sec": 9.0,
+      "event_label": "cell phone",
+      "event_id": 3,
+      "event_priority": 1,
+      "event_severity": "low"
+    },
+    {
+      "start_frame": 15,
+      "end_frame": 17,
+      "start_time_sec": 14.0,
+      "end_time_sec": 17.0,
+      "event_label": "fatigue_slouch",
+      "event_id": 4,
+      "event_priority": 2,
+      "event_severity": "medium"
+    },
+    {
+      "start_frame": 50,
+      "end_frame": 55,
+      "start_time_sec": 49.0,
+      "end_time_sec": 55.0,
+      "event_label": "fatigue_slouch",
+      "event_id": 5,
+      "event_priority": 2,
+      "event_severity": "medium"
+    },
+    {
+      "start_frame": 56,
+      "end_frame": 58,
+      "start_time_sec": 55.0,
+      "end_time_sec": 58.0,
+      "event_label": "fatigue_slouch",
+      "event_id": 6,
+      "event_priority": 2,
+      "event_severity": "medium"
+    },
+    {
+      "start_frame": 70,
+      "end_frame": 72,
+      "start_time_sec": 69.0,
+      "end_time_sec": 72.0,
+      "event_label": "fatigue_slouch",
+      "event_id": 7,
+      "event_priority": 2,
+      "event_severity": "medium"
+    },
+    {
+      "start_frame": 74,
+      "end_frame": 76,
+      "start_time_sec": 73.0,
+      "end_time_sec": 76.0,
+      "event_label": "fatigue_slouch",
+      "event_id": 8,
+      "event_priority": 2,
+      "event_severity": "medium"
+    },
+    {
+      "start_frame": 77,
+      "end_frame": 79,
+      "start_time_sec": 76.0,
+      "end_time_sec": 79.0,
+      "event_label": "fatigue_slouch",
+      "event_id": 9,
+      "event_priority": 2,
+      "event_severity": "medium"
+    },
+    {
+      "start_frame": 90,
+      "end_frame": 92,
+      "start_time_sec": 89.0,
+      "end_time_sec": 92.0,
+      "event_label": "fatigue_slouch",
+      "event_id": 10,
+      "event_priority": 2,
+      "event_severity": "medium"
     }
-  ]
+  ],
+  "meta": {
+    "event_labels": [
+      "*"
+    ],
+    "min_event_score": 0.35,
+    "event_detections": 4,
+    "fatigue_event_detections": 9,
+    "use_pose_for_significant_events": true,
+    "significant_fatigue_flags": [
+      "asleep",
+      "head_nod",
+      "microsleep",
+      "slouch",
+      "yawn"
+    ],
+    "high_priority_event_labels": [
+      "fatigue_asleep",
+      "fatigue_microsleep"
+    ],
+    "event_padding_frames": 1,
+    "min_event_segment_frames": 1,
+    "occurrence_by_label": true,
+    "merge_padded_overlaps": false,
+    "significant_only_for_clips": true,
+    "significant_event_labels": [
+      "cell phone",
+      "laptop",
+      "phone"
+    ]
+  }
 }

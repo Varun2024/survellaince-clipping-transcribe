@@ -63,7 +63,9 @@ def run_detection(frames_dir: str, model_path: str, results_path: str = None) ->
                                 try:
                                     x1, y1, x2, y2, conf, cls = [float(v) for v in d.tolist()]  # type: ignore
                                     label = getattr(model, 'names', None)
-                                    if label and isinstance(label, (list, tuple)):
+                                    if isinstance(label, dict):
+                                        lbl = str(label.get(int(cls), int(cls)))
+                                    elif label and isinstance(label, (list, tuple)):
                                         lbl = label[int(cls)]  # type: ignore
                                     else:
                                         lbl = str(int(cls))

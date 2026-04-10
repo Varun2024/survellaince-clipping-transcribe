@@ -2,5 +2,41 @@
   {
     "clip": "D:\\projects\\ml pojects\\event_detect_railway\\output\\clips\\segment_001.mp4",
     "transcript": "D:\\projects\\ml pojects\\event_detect_railway\\output\\transcripts\\segment_001.txt"
+  },
+  {
+    "clip": "D:\\projects\\ml pojects\\event_detect_railway\\output\\clips\\segment_002.mp4",
+    "transcript": "D:\\projects\\ml pojects\\event_detect_railway\\output\\transcripts\\segment_002.txt"
+  },
+  {
+    "clip": "D:\\projects\\ml pojects\\event_detect_railway\\output\\clips\\segment_003.mp4",
+    "transcript": "D:\\projects\\ml pojects\\event_detect_railway\\output\\transcripts\\segment_003.txt"
+  },
+  {
+    "clip": "D:\\projects\\ml pojects\\event_detect_railway\\output\\clips\\segment_004.mp4",
+    "transcript": "D:\\projects\\ml pojects\\event_detect_railway\\output\\transcripts\\segment_004.txt"
+  },
+  {
+    "clip": "D:\\projects\\ml pojects\\event_detect_railway\\output\\clips\\segment_005.mp4",
+    "transcript": "D:\\projects\\ml pojects\\event_detect_railway\\output\\transcripts\\segment_005.txt"
+  },
+  {
+    "clip": "D:\\projects\\ml pojects\\event_detect_railway\\output\\clips\\segment_006.mp4",
+    "transcript": "D:\\projects\\ml pojects\\event_detect_railway\\output\\transcripts\\segment_006.txt"
+  },
+  {
+    "clip": "D:\\projects\\ml pojects\\event_detect_railway\\output\\clips\\segment_007.mp4",
+    "transcript": "D:\\projects\\ml pojects\\event_detect_railway\\output\\transcripts\\segment_007.txt"
+  },
+  {
+    "clip": "D:\\projects\\ml pojects\\event_detect_railway\\output\\clips\\segment_008.mp4",
+    "transcript": "D:\\projects\\ml pojects\\event_detect_railway\\output\\transcripts\\segment_008.txt"
+  },
+  {
+    "clip": "D:\\projects\\ml pojects\\event_detect_railway\\output\\clips\\segment_009.mp4",
+    "transcript": "D:\\projects\\ml pojects\\event_detect_railway\\output\\transcripts\\segment_009.txt"
+  },
+  {
+    "clip": "D:\\projects\\ml pojects\\event_detect_railway\\output\\clips\\segment_010.mp4",
+    "transcript": "D:\\projects\\ml pojects\\event_detect_railway\\output\\transcripts\\segment_010.txt"
   }
 ]
