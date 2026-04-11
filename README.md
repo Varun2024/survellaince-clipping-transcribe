@@ -1,51 +1,139 @@
-# Surveillance Video Event Detection Pipeline
+# Railway Safety Video Intelligence
 
-Offline, modular video-intelligence pipeline for surveillance and driver-behavior analysis. It runs locally and integrates real models for detection and transcription, plus fatigue analytics and alert generation.
+An offline video-intelligence product for railway driver monitoring.
 
-## What It Does
+It turns a raw video into operational evidence: event clips, fatigue signals, alerts, transcripts, and a readable report. The pipeline runs locally and is designed to help surface unsafe driving behavior, attention lapses, and suspicious in-cab actions quickly.
 
-1. Extracts frames from video.
-2. Runs YOLO detections (with confidence filtering).
-3. Builds temporal segments.
-4. Clips video segments.
-5. Runs fatigue analytics on frames.
-6. Transcribes segment audio.
-7. Generates alerts and a human-readable report.
-8. Generates Qwen-based per-clip and whole-video summaries.
+## Product Value
 
-## Project Structure
+- Identify safety-critical moments in long surveillance-style video.
+- Convert raw footage into short, reviewable clips.
+- Highlight behavior concerns such as slouching, fatigue, microsleep, and distracting object use.
+- Produce summaries that are easy to review by operations, safety, or compliance teams.
+- Keep the workflow offline-first, with optional Qwen summaries when a compatible endpoint is available.
 
-```text
-main.py
-pipelines/
-  alerts.py
-  clipper.py
-  detect.py
-  ingest.py
-  pose_fatigue.py
-  report.py
-  segmenter.py
-  transcriber.py
-output/
-  clips/
-  detections.json
-  frames/
-  pose_fatigue.json
-  report.txt
-  segments.json
-  alerts.json
-  transcripts/
-  qwen/
-```
+## What The Product Delivers
 
-## Quickstart
+The pipeline produces a complete review package from a single input video:
+
+- extracted frames
+- event detections
+- event-based segments and clips
+- pose and fatigue metrics
+- alert summaries
+- transcripts for each clip
+- a final human-readable report
+- Qwen-generated clip and whole-video summaries in Markdown
+
+## End-to-End Flow
+
+1. Load runtime defaults from `.env`.
+2. Extract video frames at the configured sample rate.
+3. Run object detection with confidence filtering.
+4. Analyze pose and fatigue signals frame by frame.
+5. Build event windows from significant behavior and safety events.
+6. Clip each event window into a separate video file.
+7. Transcribe clip audio.
+8. Generate alerts and a final report.
+9. Produce Qwen summaries for clip-level and whole-video review.
+
+## How It Works
+
+The current pipeline is centered on three review categories:
+
+- Safety distractions: phone, laptop, and similar in-cab objects.
+- Driver fatigue: microsleep, slouching, head nods, and yawns.
+- Operational evidence: clips, transcripts, alerts, and Markdown summaries.
+
+Event windows are preserved as separate clips so each occurrence can be reviewed independently. High-priority fatigue events are kept isolated even when they occur near other activity.
+
+## Output Artifacts
+
+Generated files are written to `output/`:
+
+- `detections.json` detection results
+- `segments.json` event windows with timestamps and severity
+- `clips/` one clip per event occurrence
+- `pose_fatigue.json` per-frame fatigue and posture metrics
+- `alerts.json` alert summary and segment risk data
+- `transcripts/` clip transcript files and transcript index
+- `report.txt` final product-style summary
+- `qwen/clip_summaries.md` clip summaries in Markdown
+- `qwen/whole_video_summary.md` full-run summary in Markdown
+- `qwen/qwen_summary_manifest.json` model and endpoint metadata
+
+## Configuration
+
+These settings are controlled through `.env`:
+
+### Core Model Settings
+
+- `YOLO_MODEL_PATH` path to the detection model
+- `WHISPER_MODEL_PATH` whisper model path or model name
+- `QWEN_API_BASE_URL` OpenAI-compatible Qwen endpoint
+- `QWEN_MODEL` preferred Qwen model name
+- `QWEN_MODEL_CANDIDATES` fallback Qwen model list
+
+### Detection And Segmentation
+
+- `FRAME_RATE` frame sampling rate
+- `DETECTION_CONF_THRESHOLD` minimum detection confidence
+- `SEGMENT_GAP` max frame gap inside a segment
+- `MIN_SEGMENT_FRAMES` minimum segment size
+- `MAX_SEGMENT_FRAMES` optional hard cap for splitting
+- `EVENT_LABELS` labels used to define event-based clipping
+- `MIN_EVENT_SCORE` minimum score for event inclusion
+- `MIN_EVENT_SEGMENT_FRAMES` minimum event segment size
+- `EVENT_PADDING_FRAMES` frame padding around each event window
+- `EVENT_OCCURRENCE_BY_LABEL` preserve each occurrence as its own clip
+- `EVENT_MERGE_PADDED_OVERLAPS` merge overlapping padded windows only when needed
+
+### Safety And Significance
+
+- `CLIP_SIGNIFICANT_EVENTS_ONLY` clip only anomaly-relevant events
+- `SIGNIFICANT_EVENT_LABELS` labels considered safety-relevant distractions
+- `REPORT_SIGNIFICANT_EVENTS_ONLY` report only significant detections
+- `USE_POSE_FOR_SIGNIFICANT_EVENTS` include pose/fatigue events in segment creation
+- `SIGNIFICANT_FATIGUE_FLAGS` fatigue flags treated as significant
+- `HIGH_PRIORITY_EVENT_LABELS` labels that must remain isolated as separate clips
+
+### Alerting
+
+- `FATIGUE_ALERT_FRAME_RATIO` fatigue threshold for high alert
+- `MAX_MICROSLEEP_EVENTS` microsleep tolerance
+- `MAX_YAWN_EVENTS` yawn tolerance
+- `HIGH_RISK_LABELS` labels that trigger behavior alerts
+
+## Recommended Defaults
+
+For this project, the tuned defaults are aimed at short, reviewable clips:
+
+- `DETECTION_CONF_THRESHOLD=0.45`
+- `SEGMENT_GAP=2`
+- `MIN_SEGMENT_FRAMES=3`
+- `MAX_SEGMENT_FRAMES=0`
+- `EVENT_LABELS=*`
+- `MIN_EVENT_SCORE=0.35`
+- `MIN_EVENT_SEGMENT_FRAMES=1`
+- `EVENT_PADDING_FRAMES=1`
+- `EVENT_OCCURRENCE_BY_LABEL=1`
+- `EVENT_MERGE_PADDED_OVERLAPS=0`
+- `CLIP_SIGNIFICANT_EVENTS_ONLY=1`
+- `SIGNIFICANT_EVENT_LABELS=cell phone,phone,laptop`
+- `REPORT_SIGNIFICANT_EVENTS_ONLY=1`
+- `USE_POSE_FOR_SIGNIFICANT_EVENTS=1`
+- `SIGNIFICANT_FATIGUE_FLAGS=microsleep,asleep,slouch,head_nod,yawn`
+- `HIGH_PRIORITY_EVENT_LABELS=fatigue_microsleep,fatigue_asleep`
+- `FATIGUE_ALERT_FRAME_RATIO=0.10`
+
+## Setup
 
 ### Prerequisites
 
 - Python 3.8+
 - FFmpeg on PATH
 
-### Setup
+### Install
 
 ```powershell
 python -m venv .venv
@@ -59,104 +147,42 @@ pip install -r requirements.txt
 python main.py input_video.mp4 output
 ```
 
-## Key Configuration (.env)
+If you are working inside this workspace, using `.venv/Scripts/python.exe` directly avoids interpreter mismatch.
 
-Model and runtime:
+## Reading The Results
 
-- `YOLO_MODEL_PATH` path to YOLO model
-- `WHISPER_MODEL_PATH` whisper model path or model name
-- `QWEN_API_BASE_URL` OpenAI-compatible Qwen endpoint
-- `QWEN_MODEL` preferred Qwen model name
-- `QWEN_MODEL_CANDIDATES` fallback candidate list tried in order
-- `FRAME_RATE` sampled FPS
-- `DETECTION_CONF_THRESHOLD` minimum confidence for detections
+The most useful outputs for review are:
 
-Segmentation tuning:
+- `segments.json` for event timing and severity
+- `clips/` for each event occurrence
+- `alerts.json` for fatigue and behavior alerts
+- `report.txt` for a compact summary of what happened
+- `qwen/whole_video_summary.md` for a narrative executive summary
 
-- `SEGMENT_GAP` max frame gap to keep same segment
-- `MIN_SEGMENT_FRAMES` minimum segment length to keep
-- `MAX_SEGMENT_FRAMES` optional hard cap for splitting (set `0` to disable fixed-size splitting)
-- `EVENT_LABELS` comma-separated event labels used for event-based clipping, or `*` for all detected events
-- `MIN_EVENT_SCORE` minimum event score used by the segment builder
-- `MIN_EVENT_SEGMENT_FRAMES` minimum segment length specifically for event mode
-- `EVENT_PADDING_FRAMES` frame padding added before/after each detected event window
-- `EVENT_OCCURRENCE_BY_LABEL` when `1`, builds separate segments per event label occurrence (default `1`)
-- `EVENT_MERGE_PADDED_OVERLAPS` when `1`, merges overlapping padded segments (default `0` to keep each occurrence as its own clip)
-- `CLIP_SIGNIFICANT_EVENTS_ONLY` when `1`, clip only anomaly-relevant event labels (default `1`)
-- `SIGNIFICANT_EVENT_LABELS` comma-separated anomaly-relevant labels (default: `cell phone,phone,laptop`)
-- `REPORT_SIGNIFICANT_EVENTS_ONLY` when `1`, report detection analytics for significant labels only (default `1`)
-- `USE_POSE_FOR_SIGNIFICANT_EVENTS` when `1`, include pose/fatigue events as clip-worthy anomalies (default `1`)
-- `SIGNIFICANT_FATIGUE_FLAGS` fatigue indicators treated as significant (default: `microsleep,asleep,slouch,head_nod,yawn`)
-- `HIGH_PRIORITY_EVENT_LABELS` labels forced to stay isolated as separate clips even when nearby windows overlap (default: `fatigue_microsleep,fatigue_asleep`)
+## Operational Notes
 
-Alerting:
+- Dense detections can still produce longer clips; tune `DETECTION_CONF_THRESHOLD`, `SEGMENT_GAP`, and event-related thresholds for the target video.
+- Keep API keys and provider details in local `.env` files only.
+- Qwen summaries require a compatible OpenAI-style endpoint and an available model name.
+- If one Qwen model is not available, the pipeline automatically tries the next fallback candidate.
 
-- `FATIGUE_ALERT_FRAME_RATIO` fatigue ratio threshold for high alert
-- `MAX_MICROSLEEP_EVENTS` max tolerated microsleep frames
-- `MAX_YAWN_EVENTS` max tolerated yawn frames
-- `HIGH_RISK_LABELS` comma-separated labels that trigger behavior alerts
+## Repository Layout
 
-## Output Files
-
-- `output/detections.json` YOLO detections
-- `output/segments.json` segment boundaries
-- `output/clips/` clipped videos
-- `output/pose_fatigue.json` per-frame fatigue metrics
-- `output/alerts.json` generated alerts and summary
-- `output/transcripts/transcripts_index.json` transcript index
-- `output/report.txt` consolidated text report
-- `output/qwen/clip_summaries.json` per-clip Qwen summaries (raw record)
-- `output/qwen/clip_summaries.md` per-clip Qwen summaries in Markdown
-- `output/qwen/whole_video_summary.md` whole-video Qwen summary in Markdown
-- `output/qwen/qwen_summary_manifest.json` summary manifest and model metadata
-
-## Reporting and Alerts
-
-The report now includes:
-
-- Overall counts (frames, detections, segments)
-- Detection confidence analytics (min/avg/max, P50/P90/P95, top labels)
-- Fatigue metrics (blink, microsleep, yawn, nod, slouch)
-- Segment transcript references
-- Alert summary with severity labels
-- Per-segment risk summary (severity, fatigue score, high-risk hits)
-
-`alerts.json` now includes:
-
-- Global alerts for the full video
-- `segment_alerts` entries mapped by segment (`segment_id`, `start_frame`, `end_frame`)
-
-`qwen/` now includes:
-
-- `clip_summaries.json` one summary per transcript clip
-- `clip_summaries.md` all clip summaries rendered as Markdown
-- `whole_video_summary.md` an executive summary for the whole run (Markdown)
-- `qwen_summary_manifest.json` metadata about the model/base URL used
-
-## Notes
-
-- If detections span most frames, clips may still be long; tune `DETECTION_CONF_THRESHOLD`, `SEGMENT_GAP`, and `MIN_SEGMENT_FRAMES`.
-- Current tuned defaults in `.env` are set for shorter/cleaner clips on typical real videos:
-  - `DETECTION_CONF_THRESHOLD=0.45`
-  - `SEGMENT_GAP=2`
-  - `MIN_SEGMENT_FRAMES=3`
-  - `MAX_SEGMENT_FRAMES=0`
-  - `EVENT_LABELS=*`
-  - `MIN_EVENT_SCORE=0.35`
-  - `MIN_EVENT_SEGMENT_FRAMES=1`
-  - `EVENT_PADDING_FRAMES=1`
-  - `EVENT_OCCURRENCE_BY_LABEL=1`
-  - `EVENT_MERGE_PADDED_OVERLAPS=0`
-  - `CLIP_SIGNIFICANT_EVENTS_ONLY=1`
-  - `SIGNIFICANT_EVENT_LABELS=cell phone,phone,laptop`
-  - `REPORT_SIGNIFICANT_EVENTS_ONLY=1`
-  - `USE_POSE_FOR_SIGNIFICANT_EVENTS=1`
-  - `SIGNIFICANT_FATIGUE_FLAGS=microsleep,asleep,slouch,head_nod,yawn`
-  - `HIGH_PRIORITY_EVENT_LABELS=fatigue_microsleep,fatigue_asleep`
-  - `FATIGUE_ALERT_FRAME_RATIO=0.10`
-- Keep secrets out of source control and use local `.env` values.
-- For Qwen summaries, set `QWEN_API_BASE_URL` and `QWEN_MODEL` if your endpoint differs from the default OpenAI-compatible layout.
-- If one Qwen model name is unavailable, the pipeline automatically tries the next candidate in `QWEN_MODEL_CANDIDATES`.
+```text
+main.py
+pipelines/
+  alerts.py
+  clipper.py
+  detect.py
+  ingest.py
+  pose_fatigue.py
+  report.py
+  segmenter.py
+  transcriber.py
+  qwen_summary.py
+output/
+tests/
+```
 
 ## License
 
