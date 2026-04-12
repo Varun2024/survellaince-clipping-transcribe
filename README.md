@@ -1,137 +1,254 @@
 # Railway Safety Video Intelligence
 
-An offline video-intelligence product for railway driver monitoring.
+## Executive Summary
 
-It turns a raw video into operational evidence: event clips, fatigue signals, alerts, transcripts, and a readable report. The pipeline runs locally and is designed to help surface unsafe driving behavior, attention lapses, and suspicious in-cab actions quickly.
+Railway Safety Video Intelligence is an enterprise-oriented, offline video analytics solution for locopilot and in-cab behavior monitoring. It transforms raw surveillance footage into operationally actionable safety evidence, including anomaly-focused clips, fatigue analytics, alerts, transcripts, and executive-readable summaries.
 
-## Product Value
+The platform is designed to support safety operations, audit readiness, and incident review workflows with minimal manual video scanning.
 
-- Identify safety-critical moments in long surveillance-style video.
-- Convert raw footage into short, reviewable clips.
-- Highlight behavior concerns such as slouching, fatigue, microsleep, and distracting object use.
-- Produce summaries that are easy to review by operations, safety, or compliance teams.
-- Keep the workflow offline-first, with optional Qwen summaries when a compatible endpoint is available.
+## Business Outcomes
 
-## What The Product Delivers
+- Reduce manual review effort by converting long-duration footage into event-centric clips.
+- Improve response speed to potential driver-risk behaviors such as fatigue and distraction.
+- Standardize reporting outputs for safety, operations, and compliance stakeholders.
+- Maintain deployment flexibility through offline-first execution and optional LLM summarization.
 
-The pipeline produces a complete review package from a single input video:
+## Primary Use Cases
 
-- extracted frames
-- event detections
-- event-based segments and clips
-- pose and fatigue metrics
-- alert summaries
-- transcripts for each clip
-- a final human-readable report
-- Qwen-generated clip and whole-video summaries in Markdown
+- Driver vigilance monitoring in locomotives.
+- Post-incident reconstruction and timeline analysis.
+- Routine safety audits for prohibited or unsafe in-cab behavior.
+- Compliance evidence packaging for supervisory review.
 
-## End-to-End Flow
+## Core Product Capabilities
 
-1. Load runtime defaults from `.env`.
-2. Extract video frames at the configured sample rate.
-3. Run object detection with confidence filtering.
-4. Analyze pose and fatigue signals frame by frame.
-5. Build event windows from significant behavior and safety events.
-6. Clip each event window into a separate video file.
-7. Transcribe clip audio.
-8. Generate alerts and a final report.
-9. Produce Qwen summaries for clip-level and whole-video review.
+- Video ingestion and frame extraction using FFmpeg.
+- Object/event detection using YOLO.
+- Pose-based fatigue analytics using OpenCV signals.
+- Event significance filtering for anomaly-first clipping.
+- High-priority event isolation for severe fatigue events (for example microsleep/asleep).
+- Automatic clip transcription.
+- Alert generation with segment-level risk context.
+- Human-readable report generation.
+- Optional Qwen summaries in Markdown (clip-level and whole-video).
 
-## How It Works
+## Functional Workflow
 
-The current pipeline is centered on three review categories:
+1. Load runtime settings from `.env`.
+2. Extract frames from source video at configured sampling frequency.
+3. Run object detection and confidence filtering.
+4. Run pose/fatigue analytics (slouch, head-nod, yawn, microsleep).
+5. Build significant event windows from detection and fatigue signals.
+6. Preserve each event occurrence as a distinct clipping unit.
+7. Isolate configured high-priority events from overlap merges.
+8. Generate clips, transcripts, alerts, and final reports.
+9. Produce optional Qwen narrative summaries.
 
-- Safety distractions: phone, laptop, and similar in-cab objects.
-- Driver fatigue: microsleep, slouching, head nods, and yawns.
-- Operational evidence: clips, transcripts, alerts, and Markdown summaries.
+## Reference Architecture
 
-Event windows are preserved as separate clips so each occurrence can be reviewed independently. High-priority fatigue events are kept isolated even when they occur near other activity.
+### System Components
 
-## Output Artifacts
+- Ingestion Layer: frame extraction and media normalization.
+- Perception Layer: object detection plus pose/fatigue analytics.
+- Event Intelligence Layer: significance filtering, event scoring, and segment construction.
+- Evidence Layer: clip generation, transcription, and risk alert payloads.
+- Reporting Layer: operational report and optional executive LLM summaries.
 
-Generated files are written to `output/`:
+### Data Flow Diagram
 
-- `detections.json` detection results
-- `segments.json` event windows with timestamps and severity
-- `clips/` one clip per event occurrence
-- `pose_fatigue.json` per-frame fatigue and posture metrics
-- `alerts.json` alert summary and segment risk data
-- `transcripts/` clip transcript files and transcript index
-- `report.txt` final product-style summary
-- `qwen/clip_summaries.md` clip summaries in Markdown
-- `qwen/whole_video_summary.md` full-run summary in Markdown
-- `qwen/qwen_summary_manifest.json` model and endpoint metadata
+```mermaid
+flowchart LR
+  A[Input Video] --> B[Ingest: Frame Extraction]
+  B --> C[Detection: YOLO]
+  B --> D[Pose/Fatigue Analysis]
+  C --> E[Event Intelligence\nSignificance + Priority]
+  D --> E
+  E --> F[Segment Windows]
+  F --> G[Clip Generation]
+  G --> H[Transcription]
+  E --> I[Alerts]
+  H --> J[Operational Report]
+  I --> J
+  J --> K[Qwen Summaries Optional]
+  K --> L[Executive Markdown Outputs]
+```
 
-## Configuration
+### Processing Boundaries
 
-These settings are controlled through `.env`:
+- Mandatory Offline Path: ingest, detect, fatigue, segmentation, clipping, alerts, report.
+- Optional Remote Path: Qwen summarization only.
+- Artifact Interface: JSON/Markdown outputs for downstream enterprise systems.
 
-### Core Model Settings
+## Event Intelligence Model
 
-- `YOLO_MODEL_PATH` path to the detection model
-- `WHISPER_MODEL_PATH` whisper model path or model name
-- `QWEN_API_BASE_URL` OpenAI-compatible Qwen endpoint
-- `QWEN_MODEL` preferred Qwen model name
-- `QWEN_MODEL_CANDIDATES` fallback Qwen model list
+The segmentation system prioritizes behaviors relevant to train-driving safety:
 
-### Detection And Segmentation
+- Distraction events: phone/laptop and configured high-risk objects.
+- Fatigue events: `fatigue_microsleep`, `fatigue_asleep`, `fatigue_slouch`, `fatigue_head_nod`, `fatigue_yawn`.
+- Priority model: high-priority labels are retained as separate clips even when temporally adjacent to other events.
 
-- `FRAME_RATE` frame sampling rate
-- `DETECTION_CONF_THRESHOLD` minimum detection confidence
-- `SEGMENT_GAP` max frame gap inside a segment
-- `MIN_SEGMENT_FRAMES` minimum segment size
-- `MAX_SEGMENT_FRAMES` optional hard cap for splitting
-- `EVENT_LABELS` labels used to define event-based clipping
-- `MIN_EVENT_SCORE` minimum score for event inclusion
-- `MIN_EVENT_SEGMENT_FRAMES` minimum event segment size
-- `EVENT_PADDING_FRAMES` frame padding around each event window
-- `EVENT_OCCURRENCE_BY_LABEL` preserve each occurrence as its own clip
-- `EVENT_MERGE_PADDED_OVERLAPS` merge overlapping padded windows only when needed
+This supports both operational screening and detailed incident triage.
 
-### Safety And Significance
+## Deliverables And Data Contracts
 
-- `CLIP_SIGNIFICANT_EVENTS_ONLY` clip only anomaly-relevant events
-- `SIGNIFICANT_EVENT_LABELS` labels considered safety-relevant distractions
-- `REPORT_SIGNIFICANT_EVENTS_ONLY` report only significant detections
-- `USE_POSE_FOR_SIGNIFICANT_EVENTS` include pose/fatigue events in segment creation
-- `SIGNIFICANT_FATIGUE_FLAGS` fatigue flags treated as significant
-- `HIGH_PRIORITY_EVENT_LABELS` labels that must remain isolated as separate clips
+All outputs are generated under `output/`:
 
-### Alerting
+- `detections.json`: raw detection records.
+- `pose_fatigue.json`: per-frame posture/fatigue indicators.
+- `segments.json`: event windows with start/end frames, time, label, and severity metadata.
+- `clips/`: one clip per event occurrence window.
+- `alerts.json`: global and segment-level alerts with risk indicators.
+- `transcripts/transcripts_index.json`: transcript manifest for produced clips.
+- `report.txt`: consolidated operational report.
+- `qwen/clip_summaries.md`: clip-level Markdown summaries.
+- `qwen/whole_video_summary.md`: executive narrative summary.
+- `qwen/qwen_summary_manifest.json`: LLM run metadata.
 
-- `FATIGUE_ALERT_FRAME_RATIO` fatigue threshold for high alert
-- `MAX_MICROSLEEP_EVENTS` microsleep tolerance
-- `MAX_YAWN_EVENTS` yawn tolerance
-- `HIGH_RISK_LABELS` labels that trigger behavior alerts
+## Enterprise Configuration Surface
 
-## Recommended Defaults
+Configuration is managed through `.env` and supports controlled deployment tuning.
 
-For this project, the tuned defaults are aimed at short, reviewable clips:
+### Model And Runtime
 
-- `DETECTION_CONF_THRESHOLD=0.45`
-- `SEGMENT_GAP=2`
-- `MIN_SEGMENT_FRAMES=3`
-- `MAX_SEGMENT_FRAMES=0`
-- `EVENT_LABELS=*`
-- `MIN_EVENT_SCORE=0.35`
-- `MIN_EVENT_SEGMENT_FRAMES=1`
-- `EVENT_PADDING_FRAMES=1`
-- `EVENT_OCCURRENCE_BY_LABEL=1`
-- `EVENT_MERGE_PADDED_OVERLAPS=0`
-- `CLIP_SIGNIFICANT_EVENTS_ONLY=1`
-- `SIGNIFICANT_EVENT_LABELS=cell phone,phone,laptop`
-- `REPORT_SIGNIFICANT_EVENTS_ONLY=1`
-- `USE_POSE_FOR_SIGNIFICANT_EVENTS=1`
-- `SIGNIFICANT_FATIGUE_FLAGS=microsleep,asleep,slouch,head_nod,yawn`
-- `HIGH_PRIORITY_EVENT_LABELS=fatigue_microsleep,fatigue_asleep`
-- `FATIGUE_ALERT_FRAME_RATIO=0.10`
+- `YOLO_MODEL_PATH`
+- `WHISPER_MODEL_PATH`
+- `QWEN_API_BASE_URL`
+- `QWEN_MODEL`
+- `QWEN_MODEL_CANDIDATES`
 
-## Setup
+### Detection And Segmentation Controls
+
+- `FRAME_RATE`
+- `DETECTION_CONF_THRESHOLD`
+- `SEGMENT_GAP`
+- `MIN_SEGMENT_FRAMES`
+- `MAX_SEGMENT_FRAMES`
+- `EVENT_LABELS`
+- `MIN_EVENT_SCORE`
+- `MIN_EVENT_SEGMENT_FRAMES`
+- `EVENT_PADDING_FRAMES`
+- `EVENT_OCCURRENCE_BY_LABEL`
+- `EVENT_MERGE_PADDED_OVERLAPS`
+
+### Significance And Priority Controls
+
+- `CLIP_SIGNIFICANT_EVENTS_ONLY`
+- `SIGNIFICANT_EVENT_LABELS`
+- `REPORT_SIGNIFICANT_EVENTS_ONLY`
+- `USE_POSE_FOR_SIGNIFICANT_EVENTS`
+- `SIGNIFICANT_FATIGUE_FLAGS`
+- `HIGH_PRIORITY_EVENT_LABELS`
+
+### Alerting Controls
+
+- `FATIGUE_ALERT_FRAME_RATIO`
+- `MAX_MICROSLEEP_EVENTS`
+- `MAX_YAWN_EVENTS`
+- `HIGH_RISK_LABELS`
+
+## Deployment Model
+
+- Execution mode: local/offline pipeline.
+- Runtime dependency: Python + FFmpeg.
+- External dependency: optional for Qwen summaries only.
+- Integration model: file-based artifacts suitable for downstream systems and dashboards.
+
+## KPI And ROI Framework
+
+### Recommended Success Metrics
+
+- Review Time Reduction: median manual review minutes before vs after event-based clipping.
+- Event Precision: percentage of produced clips judged safety-relevant by reviewers.
+- High-Risk Recall: percentage of known severe events captured (for labeled validation sets).
+- Alert Actionability: percentage of alerts that result in follow-up action.
+- Triage Latency: time from run completion to first investigator decision.
+
+### Baseline And Measurement Plan
+
+- Establish baseline from current manual workflow for at least 2 to 4 weeks.
+- Measure per-route and per-shift to avoid aggregation bias.
+- Track both macro outcomes (time saved) and quality outcomes (missed critical events).
+- Report monthly deltas and confidence intervals for governance reviews.
+
+### Example ROI Model
+
+Use this template:
+
+$$
+MonthlySavings = (H_{manual} - H_{assisted}) \times C_{reviewer}
+$$
+
+Where:
+
+- $H_{manual}$ is monthly manual review hours.
+- $H_{assisted}$ is monthly review hours with this system.
+- $C_{reviewer}$ is loaded hourly review cost.
+
+And:
+
+$$
+NetROI = \frac{MonthlySavings - OperatingCost}{OperatingCost}
+$$
+
+### Operational KPI Targets (Suggested)
+
+- Review Time Reduction: 40% to 70%.
+- Event Precision: 75%+.
+- High-Risk Recall: 90%+ on validated datasets.
+- Triage Latency: under 30 minutes for standard shift reviews.
+
+## Security And Governance Notes
+
+- Keep all credentials and API keys in local `.env` files.
+- Do not commit secrets to source control.
+- For regulated environments, disable remote summary generation by omitting Qwen endpoint credentials.
+
+## Release Readiness And Support Model
+
+### Release Gates
+
+- Functional Gate: end-to-end pipeline run succeeds on representative sample videos.
+- Quality Gate: clip precision and fatigue-event capture meet agreed KPI thresholds.
+- Stability Gate: regression tests pass for segmentation, clipping, reporting, and transcription.
+- Security Gate: no secrets in repository and environment settings reviewed.
+- Documentation Gate: README, configuration matrix, and runbook updated.
+
+### Versioning And Change Control
+
+- Use semantic versioning for release tags.
+- Maintain a change log with behavior-impact notes (especially event rules and thresholds).
+- Require reviewer sign-off for modifications to significance/priority controls.
+
+### Known Limitations
+
+- Performance and accuracy depend on camera angle, lighting, and frame quality.
+- Extremely dense detections may still require threshold tuning for clip compactness.
+- Fatigue signals are heuristic and should be treated as operational indicators, not medical diagnosis.
+
+### Enterprise Support Model (Suggested)
+
+- L1 Operations Support: run failures, artifact generation checks, reruns.
+- L2 ML/Analytics Support: threshold tuning, event precision tuning, false-positive analysis.
+- L3 Engineering Support: pipeline defects, model integration, architecture changes.
+
+### Incident Severity Matrix (Suggested)
+
+- Sev-1: critical pipeline outage on production workflow, no report deliverable.
+- Sev-2: degraded outputs with incomplete clips/alerts.
+- Sev-3: cosmetic or non-blocking report/summarization issues.
+
+### Support SLAs (Suggested)
+
+- Sev-1 response: within 1 hour, workaround or rollback within 4 hours.
+- Sev-2 response: within 4 business hours, fix plan within 1 business day.
+- Sev-3 response: within 2 business days, patch in next planned release cycle.
+
+## Installation And Execution
 
 ### Prerequisites
 
 - Python 3.8+
-- FFmpeg on PATH
+- FFmpeg available on PATH
 
 ### Install
 
@@ -147,26 +264,25 @@ pip install -r requirements.txt
 python main.py input_video.mp4 output
 ```
 
-If you are working inside this workspace, using `.venv/Scripts/python.exe` directly avoids interpreter mismatch.
+In managed Windows environments, using `.venv/Scripts/python.exe` directly is recommended to avoid interpreter mismatch.
 
-## Reading The Results
+## Recommended Operating Defaults
 
-The most useful outputs for review are:
+The following settings are tuned for concise, review-ready outputs:
 
-- `segments.json` for event timing and severity
-- `clips/` for each event occurrence
-- `alerts.json` for fatigue and behavior alerts
-- `report.txt` for a compact summary of what happened
-- `qwen/whole_video_summary.md` for a narrative executive summary
+- `DETECTION_CONF_THRESHOLD=0.45`
+- `SEGMENT_GAP=2`
+- `MIN_SEGMENT_FRAMES=3`
+- `EVENT_PADDING_FRAMES=1`
+- `EVENT_OCCURRENCE_BY_LABEL=1`
+- `EVENT_MERGE_PADDED_OVERLAPS=0`
+- `CLIP_SIGNIFICANT_EVENTS_ONLY=1`
+- `SIGNIFICANT_EVENT_LABELS=cell phone,phone,laptop`
+- `USE_POSE_FOR_SIGNIFICANT_EVENTS=1`
+- `SIGNIFICANT_FATIGUE_FLAGS=microsleep,asleep,slouch,head_nod,yawn`
+- `HIGH_PRIORITY_EVENT_LABELS=fatigue_microsleep,fatigue_asleep`
 
-## Operational Notes
-
-- Dense detections can still produce longer clips; tune `DETECTION_CONF_THRESHOLD`, `SEGMENT_GAP`, and event-related thresholds for the target video.
-- Keep API keys and provider details in local `.env` files only.
-- Qwen summaries require a compatible OpenAI-style endpoint and an available model name.
-- If one Qwen model is not available, the pipeline automatically tries the next fallback candidate.
-
-## Repository Layout
+## Repository Structure
 
 ```text
 main.py
