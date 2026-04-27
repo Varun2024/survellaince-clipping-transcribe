@@ -3,5 +3,7 @@ mediapipe
 whisper
 openai
 transformers
-
+fastapi
+uvicorn
+python-multipart
 

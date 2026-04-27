@@ -10,3 +10,4 @@ __pycache__/
 *.log
 video_intelligence_prd.md
 output/
+app_data/

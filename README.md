@@ -266,6 +266,26 @@ python main.py input_video.mp4 output
 
 In managed Windows environments, using `.venv/Scripts/python.exe` directly is recommended to avoid interpreter mismatch.
 
+### Run Web App (Upload + Dashboard)
+
+```powershell
+uvicorn app.api:app --host 0.0.0.0 --port 8000
+```
+
+Then open `http://localhost:8000` to upload videos, monitor job status, and view generated outputs (alerts, segments, clips, transcripts, and summaries).
+
+UI routes:
+- `/` SaaS-style product homepage
+- `/overview` operations dashboard
+- `/upload` upload page
+- `/jobs-ui` jobs list
+- `/jobs-ui/{job_id}` job details (includes live processing timeline, source/clip previews, and share-report actions)
+
+Web app environment knobs:
+- `APP_DATA_DIR` (default: `app_data`)
+- `APP_MAX_WORKERS` (default: `1`)
+- `APP_MAX_UPLOAD_MB` (default: `1024`)
+
 ## Recommended Operating Defaults
 
 The following settings are tuned for concise, review-ready outputs:
@@ -286,6 +306,10 @@ The following settings are tuned for concise, review-ready outputs:
 
 ```text
 main.py
+app/
+  api.py
+  db.py
+  job_manager.py
 pipelines/
   alerts.py
   clipper.py
