@@ -264,6 +264,89 @@ def _shell(title: str, active: str, content: str, script: str = "") -> str:
     pre::-webkit-scrollbar {{ width: 6px; height: 6px; }}
     pre::-webkit-scrollbar-thumb {{ background: var(--border-strong); border-radius: 999px; }}
 
+    .markdown-host {{
+      background: var(--bg-elev-0);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      max-height: 360px;
+      overflow: auto;
+      color: var(--text-dim);
+      font-size: 12.5px;
+      line-height: 1.6;
+    }}
+    .markdown-host h1, .markdown-host h2, .markdown-host h3 {{
+      color: var(--text);
+      margin: 0 0 8px;
+      letter-spacing: -0.01em;
+    }}
+    .markdown-host h1 {{ font-size: 18px; }}
+    .markdown-host h2 {{ font-size: 16px; }}
+    .markdown-host h3 {{ font-size: 14px; }}
+    .markdown-host p {{ margin: 0 0 10px; }}
+    .markdown-host ul {{ margin: 0 0 10px 18px; padding: 0; }}
+    .markdown-host li {{ margin: 0 0 6px; }}
+    .markdown-host code {{
+      font-family: var(--mono);
+      background: var(--bg-elev-2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 1px 5px;
+      color: var(--text);
+    }}
+    .markdown-host pre {{
+      margin: 0 0 10px;
+      max-height: none;
+    }}
+    .fullscreen-overlay {{
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 7, 13, 0.86);
+      backdrop-filter: blur(6px);
+      z-index: 50;
+      display: none;
+      align-items: stretch;
+      justify-content: center;
+      padding: 20px;
+    }}
+    .fullscreen-panel {{
+      width: min(1200px, 100%);
+      height: 100%;
+      background: linear-gradient(180deg, var(--bg-elev-1), var(--bg-elev-0));
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }}
+    .fullscreen-header {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-elev-1);
+    }}
+    .fullscreen-title {{
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }}
+    .fullscreen-content {{
+      flex: 1;
+      padding: 14px;
+      overflow: auto;
+    }}
+    .fullscreen-content .markdown-host {{
+      max-height: none;
+      min-height: 100%;
+      font-size: 13.5px;
+      line-height: 1.72;
+    }}
+
     video {{ width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border); background: #000; }}
     .video-grid {{ display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }}
     .video-grid > div {{ background: var(--bg-elev-0); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; }}
@@ -686,14 +769,56 @@ def job_details_page(job_id: str) -> str:
         <div id="alertsCard" class="card"><h3>Safety Alerts <span class="tag">events</span></h3><pre>Loading...</pre></div>
         <div id="metricsCard" class="card"><h3>Detection &amp; Fatigue Metrics <span class="tag">summary</span></h3><pre>Loading...</pre></div>
       </div>
-      <div id="clipsCard" class="card"><h3>Generated Evidence Clips <span class="tag" id="clipsCount">0</span></h3><div><div class="empty-state">Loading...</div></div></div>
+      <div id="clipsCard" class="card">
+        <h3>Generated Evidence Clips <span class="tag" id="clipsCount">0</span></h3>
+        <div class="section-actions">
+          <button id="clipsPrevBtn" class="button-chip" type="button">← Previous</button>
+          <span id="clipsPageInfo" class="dim mono">Page 1 / 1</span>
+          <button id="clipsNextBtn" class="button-chip" type="button">Next →</button>
+        </div>
+        <div id="clipsContainer"><div class="empty-state">Loading...</div></div>
+      </div>
       <div class="grid-2">
-        <div id="transcriptsCard" class="card"><h3>Transcripts <span class="tag">audio</span></h3><pre>Loading...</pre></div>
-        <div id="summaryCard" class="card"><h3>Video Summary <span class="tag">qwen</span></h3><pre>Loading...</pre></div>
+        <div id="summaryCard" class="card">
+          <h3>Video Summary <span class="tag">qwen</span></h3>
+          <div class="section-actions">
+            <div class="grow"></div>
+            <button id="summaryFullscreenBtn" class="button-chip" type="button">Fullscreen</button>
+          </div>
+          <div class="markdown-host"><div class="dim">Loading...</div></div>
+        </div>
+      </div>
+      <div id="clipSummariesCard" class="card">
+        <h3>Per-Clip Summaries <span class="tag">qwen</span></h3>
+        <div class="section-actions">
+          <button id="clipSummaryPrevBtn" class="button-chip" type="button">← Previous</button>
+          <span id="clipSummaryPageInfo" class="dim mono">Clip 0 / 0</span>
+          <button id="clipSummaryNextBtn" class="button-chip" type="button">Next →</button>
+          <button id="clipSummaryFullscreenBtn" class="button-chip" type="button">Fullscreen</button>
+        </div>
+        <div class="markdown-host"><div class="dim">Loading...</div></div>
+      </div>
+      <div id="transcriptsCard" class="card"><h3>Transcripts <span class="tag">audio</span></h3><pre>Loading...</pre></div>
+      <div id="markdownFullscreen" class="fullscreen-overlay">
+        <div class="fullscreen-panel">
+          <div class="fullscreen-header">
+            <div id="fullscreenTitle" class="fullscreen-title">Summary</div>
+            <button class="button-chip" type="button" onclick="closeFullscreenReader()">Close</button>
+          </div>
+          <div class="fullscreen-content">
+            <div id="fullscreenMarkdown" class="markdown-host"></div>
+          </div>
+        </div>
       </div>
     """
     script = f"""
       const JOB_ID = {repr(job_id)};
+      const CLIPS_PER_PAGE = 10;
+      let clipsCurrentPage = 1;
+      let clipsCache = [];
+      let clipSummariesCache = [];
+      let clipSummaryCurrentIndex = 1;
+      let summaryWholeHtmlCache = '';
       function statusPill(status) {{
         const s = (status || '').toLowerCase();
         return `<span class="pill ${{h(s)}}">${{h(status || '—')}}</span>`;
@@ -701,6 +826,211 @@ def job_details_page(job_id: str) -> str:
       function fmtDate(s) {{
         if (!s) return '—';
         return s;
+      }}
+      function inlineMd(text) {{
+        return h(text || '')
+          .replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>')
+          .replace(/`([^`]+)`/g, '<code>$1</code>');
+      }}
+      function markdownToHtml(markdown) {{
+        const src = String(markdown || '').replace(/\\r\\n/g, '\\n');
+        if (!src.trim()) return '';
+        const lines = src.split('\\n');
+        let out = [];
+        let inCode = false;
+        let inList = false;
+        let para = [];
+        const flushPara = () => {{
+          if (!para.length) return;
+          out.push(`<p>${{inlineMd(para.join(' '))}}</p>`);
+          para = [];
+        }};
+        const closeList = () => {{
+          if (inList) {{
+            out.push('</ul>');
+            inList = false;
+          }}
+        }};
+        for (const lineRaw of lines) {{
+          const line = String(lineRaw || '');
+          const trimmed = line.trim();
+          if (trimmed.startsWith('```')) {{
+            flushPara();
+            closeList();
+            if (!inCode) {{
+              inCode = true;
+              out.push('<pre><code>');
+            }} else {{
+              inCode = false;
+              out.push('</code></pre>');
+            }}
+            continue;
+          }}
+          if (inCode) {{
+            out.push(`${{h(line)}}\\n`);
+            continue;
+          }}
+          if (!trimmed) {{
+            flushPara();
+            closeList();
+            continue;
+          }}
+          const h3 = trimmed.match(/^###\\s+(.+)/);
+          if (h3) {{
+            flushPara();
+            closeList();
+            out.push(`<h3>${{inlineMd(h3[1])}}</h3>`);
+            continue;
+          }}
+          const h2 = trimmed.match(/^##\\s+(.+)/);
+          if (h2) {{
+            flushPara();
+            closeList();
+            out.push(`<h2>${{inlineMd(h2[1])}}</h2>`);
+            continue;
+          }}
+          const h1 = trimmed.match(/^#\\s+(.+)/);
+          if (h1) {{
+            flushPara();
+            closeList();
+            out.push(`<h1>${{inlineMd(h1[1])}}</h1>`);
+            continue;
+          }}
+          const li = trimmed.match(/^-\\s+(.+)/);
+          if (li) {{
+            flushPara();
+            if (!inList) {{
+              out.push('<ul>');
+              inList = true;
+            }}
+            out.push(`<li>${{inlineMd(li[1])}}</li>`);
+            continue;
+          }}
+          para.push(trimmed);
+        }}
+        flushPara();
+        closeList();
+        if (inCode) out.push('</code></pre>');
+        return out.join('');
+      }}
+      function renderMarkdownCard(selector, markdown, emptyText) {{
+        const card = document.querySelector(selector);
+        if (!card) return;
+        const host = card.querySelector('.markdown-host');
+        if (!host) return;
+        const html = markdownToHtml(markdown || '');
+        host.innerHTML = html || `<div class="dim">${{h(emptyText || 'Not available yet.')}}</div>`;
+        return html;
+      }}
+      function splitClipSummaries(markdown) {{
+        const src = String(markdown || '').trim();
+        if (!src) return [];
+        const normalized = src.replace(/^#\\s+Clip\\s+Summaries\\s*/i, '').trim();
+        const marker = /^###\\s+Clip:/gm;
+        const blocks = [];
+        const starts = [];
+        let m;
+        while ((m = marker.exec(normalized)) !== null) {{
+          starts.push(m.index);
+        }}
+        if (!starts.length) return [normalized];
+        for (let i = 0; i < starts.length; i += 1) {{
+          const start = starts[i];
+          const end = (i + 1 < starts.length) ? starts[i + 1] : normalized.length;
+          const chunk = normalized.slice(start, end).trim();
+          if (chunk) blocks.push(chunk);
+        }}
+        return blocks;
+      }}
+      function renderClipsPage() {{
+        const clips = Array.isArray(clipsCache) ? clipsCache : [];
+        const total = clips.length;
+        const pages = Math.max(1, Math.ceil(total / CLIPS_PER_PAGE));
+        clipsCurrentPage = Math.max(1, Math.min(clipsCurrentPage, pages));
+        const start = (clipsCurrentPage - 1) * CLIPS_PER_PAGE;
+        const pageItems = clips.slice(start, start + CLIPS_PER_PAGE);
+        const infoEl = document.getElementById('clipsPageInfo');
+        const prevBtn = document.getElementById('clipsPrevBtn');
+        const nextBtn = document.getElementById('clipsNextBtn');
+        const clipsCountEl = document.getElementById('clipsCount');
+        const container = document.getElementById('clipsContainer');
+        if (clipsCountEl) clipsCountEl.textContent = total;
+        if (infoEl) infoEl.textContent = `Page ${{clipsCurrentPage}} / ${{pages}}`;
+        if (prevBtn) prevBtn.disabled = clipsCurrentPage <= 1;
+        if (nextBtn) nextBtn.disabled = clipsCurrentPage >= pages;
+        if (!container) return;
+        container.innerHTML = pageItems.length
+          ? `<div class="video-grid">${{pageItems.map(c => `
+               <div>
+                 <div class="clip-name">${{h(c)}}</div>
+                 <video controls preload="metadata" src="/jobs/${{h(JOB_ID)}}/download?path=clips/${{encodeURIComponent(c)}}"></video>
+               </div>
+             `).join('')}}</div>`
+          : '<div class="empty-state">No clips generated for this run.</div>';
+      }}
+      function renderClipSummaryPage() {{
+        const host = document.querySelector('#clipSummariesCard .markdown-host');
+        const infoEl = document.getElementById('clipSummaryPageInfo');
+        const prevBtn = document.getElementById('clipSummaryPrevBtn');
+        const nextBtn = document.getElementById('clipSummaryNextBtn');
+        if (!host) return;
+        const total = clipSummariesCache.length;
+        if (!total) {{
+          if (infoEl) infoEl.textContent = 'Clip 0 / 0';
+          if (prevBtn) prevBtn.disabled = true;
+          if (nextBtn) nextBtn.disabled = true;
+          host.innerHTML = '<div class="dim">Per-clip summaries are not available yet.</div>';
+          return;
+        }}
+        clipSummaryCurrentIndex = Math.max(1, Math.min(clipSummaryCurrentIndex, total));
+        if (infoEl) infoEl.textContent = `Clip ${{clipSummaryCurrentIndex}} / ${{total}}`;
+        if (prevBtn) prevBtn.disabled = clipSummaryCurrentIndex <= 1;
+        if (nextBtn) nextBtn.disabled = clipSummaryCurrentIndex >= total;
+        const markdown = clipSummariesCache[clipSummaryCurrentIndex - 1] || '';
+        host.innerHTML = markdownToHtml(markdown) || '<div class="dim">Per-clip summary is empty.</div>';
+      }}
+      function openFullscreenReader(title, htmlContent) {{
+        const overlay = document.getElementById('markdownFullscreen');
+        const titleEl = document.getElementById('fullscreenTitle');
+        const contentEl = document.getElementById('fullscreenMarkdown');
+        if (!overlay || !titleEl || !contentEl) return;
+        titleEl.textContent = String(title || 'Summary');
+        contentEl.innerHTML = htmlContent || '<div class="dim">No content available.</div>';
+        overlay.style.display = 'flex';
+      }}
+      function closeFullscreenReader() {{
+        const overlay = document.getElementById('markdownFullscreen');
+        if (!overlay) return;
+        overlay.style.display = 'none';
+      }}
+      function bindDetailUiActions() {{
+        const clipsPrev = document.getElementById('clipsPrevBtn');
+        const clipsNext = document.getElementById('clipsNextBtn');
+        const summaryPrev = document.getElementById('clipSummaryPrevBtn');
+        const summaryNext = document.getElementById('clipSummaryNextBtn');
+        const summaryFull = document.getElementById('summaryFullscreenBtn');
+        const clipSummaryFull = document.getElementById('clipSummaryFullscreenBtn');
+        if (clipsPrev) clipsPrev.onclick = () => {{ clipsCurrentPage -= 1; renderClipsPage(); }};
+        if (clipsNext) clipsNext.onclick = () => {{ clipsCurrentPage += 1; renderClipsPage(); }};
+        if (summaryPrev) summaryPrev.onclick = () => {{ clipSummaryCurrentIndex -= 1; renderClipSummaryPage(); }};
+        if (summaryNext) summaryNext.onclick = () => {{ clipSummaryCurrentIndex += 1; renderClipSummaryPage(); }};
+        if (summaryFull) summaryFull.onclick = () => {{
+          const host = document.querySelector('#summaryCard .markdown-host');
+          openFullscreenReader('Video Summary', host ? host.innerHTML : summaryWholeHtmlCache);
+        }};
+        if (clipSummaryFull) clipSummaryFull.onclick = () => {{
+          const host = document.querySelector('#clipSummariesCard .markdown-host');
+          openFullscreenReader('Per-Clip Summary', host ? host.innerHTML : '');
+        }};
+        const overlay = document.getElementById('markdownFullscreen');
+        if (overlay) {{
+          overlay.onclick = (evt) => {{
+            if (evt.target === overlay) closeFullscreenReader();
+          }};
+        }}
+        document.onkeydown = (evt) => {{
+          if (evt && evt.key === 'Escape') closeFullscreenReader();
+        }};
       }}
       async function loadJob() {{
         const [jobRes, artRes] = await Promise.all([
@@ -793,25 +1123,24 @@ def job_details_page(job_id: str) -> str:
         const fat = (((art || {{}}).data || {{}}).fatigue_summary || {{}});
         const clips = (((art || {{}}).data || {{}}).clips || []);
         const transcriptPreviews = (((art || {{}}).data || {{}}).transcript_previews || []);
+        const qwenClips = (((art || {{}}).data || {{}}).qwen_clip_summaries_md || '');
         const qwenWhole = (((art || {{}}).data || {{}}).qwen_whole_summary_md || 'Summary not available yet.');
         const progress = (art || {{}}).progress || {{percent: 0, state: 'queued', stages: []}};
 
         document.querySelector('#alertsCard pre').textContent = alerts.length ? JSON.stringify(alerts, null, 2) : 'No alerts recorded.';
         document.querySelector('#metricsCard pre').textContent = JSON.stringify({{detections: det, fatigue: fat}}, null, 2);
         document.querySelector('#transcriptsCard pre').textContent = transcriptPreviews.length ? JSON.stringify(transcriptPreviews, null, 2) : 'No transcripts available.';
-        document.querySelector('#summaryCard pre').textContent = qwenWhole;
+        summaryWholeHtmlCache = renderMarkdownCard('#summaryCard', qwenWhole, 'Summary not available yet.') || '';
+        clipSummariesCache = splitClipSummaries(qwenClips);
+        if (clipSummaryCurrentIndex > clipSummariesCache.length) clipSummaryCurrentIndex = Math.max(1, clipSummariesCache.length);
+        renderClipSummaryPage();
         document.getElementById('sourceVideoPlayer').src = `/jobs/${{h(JOB_ID)}}/source-video`;
 
-        const clipsCountEl = document.getElementById('clipsCount');
-        if (clipsCountEl) clipsCountEl.textContent = clips.length;
-        document.querySelector('#clipsCard div').innerHTML = clips.length
-          ? `<div class="video-grid">${{clips.map(c => `
-               <div>
-                 <div class="clip-name">${{h(c)}}</div>
-                 <video controls preload="metadata" src="/jobs/${{h(JOB_ID)}}/download?path=clips/${{encodeURIComponent(c)}}"></video>
-               </div>
-             `).join('')}}</div>`
-          : '<div class="empty-state">No clips generated for this run.</div>';
+        clipsCache = clips;
+        if ((clipsCurrentPage - 1) * CLIPS_PER_PAGE >= clipsCache.length) {{
+          clipsCurrentPage = Math.max(1, Math.ceil(clipsCache.length / CLIPS_PER_PAGE));
+        }}
+        renderClipsPage();
 
         const pct = Math.max(0, Math.min(100, Number(progress.percent || 0)));
         document.getElementById('progressPercent').textContent = `${{pct}}%`;
@@ -855,6 +1184,7 @@ def job_details_page(job_id: str) -> str:
         }}
         copyReportLink();
       }}
+      bindDetailUiActions();
       loadJob();
     """
     return _shell(f"Job {short_id} - RailSight", "jobs", content, script)
