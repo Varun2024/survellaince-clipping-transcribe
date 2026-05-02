@@ -294,58 +294,35 @@ def _shell(title: str, active: str, content: str, script: str = "") -> str:
       padding: 1px 5px;
       color: var(--text);
     }}
-    .markdown-host pre {{
-      margin: 0 0 10px;
-      max-height: none;
-    }}
+    .markdown-host pre {{ margin: 0 0 10px; max-height: none; }}
+
     .fullscreen-overlay {{
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background: rgba(4, 7, 13, 0.86);
       backdrop-filter: blur(6px);
       z-index: 50;
       display: none;
-      align-items: stretch;
-      justify-content: center;
+      align-items: stretch; justify-content: center;
       padding: 20px;
     }}
     .fullscreen-panel {{
-      width: min(1200px, 100%);
-      height: 100%;
+      width: min(1200px, 100%); height: 100%;
       background: linear-gradient(180deg, var(--bg-elev-1), var(--bg-elev-0));
       border: 1px solid var(--border-strong);
       border-radius: 14px;
       box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
       overflow: hidden;
     }}
     .fullscreen-header {{
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 12px 14px;
       border-bottom: 1px solid var(--border);
       background: var(--bg-elev-1);
     }}
-    .fullscreen-title {{
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-      letter-spacing: 0.01em;
-    }}
-    .fullscreen-content {{
-      flex: 1;
-      padding: 14px;
-      overflow: auto;
-    }}
-    .fullscreen-content .markdown-host {{
-      max-height: none;
-      min-height: 100%;
-      font-size: 13.5px;
-      line-height: 1.72;
-    }}
+    .fullscreen-title {{ font-size: 14px; font-weight: 600; color: var(--text); letter-spacing: 0.01em; }}
+    .fullscreen-content {{ flex: 1; padding: 14px; overflow: auto; }}
+    .fullscreen-content .markdown-host {{ max-height: none; min-height: 100%; font-size: 13.5px; line-height: 1.72; }}
 
     video {{ width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border); background: #000; }}
     .video-grid {{ display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }}
@@ -772,28 +749,27 @@ def job_details_page(job_id: str) -> str:
       <div id="clipsCard" class="card">
         <h3>Generated Evidence Clips <span class="tag" id="clipsCount">0</span></h3>
         <div class="section-actions">
-          <button id="clipsPrevBtn" class="button-chip" type="button">← Previous</button>
+          <button id="clipsPrevBtn" class="button-chip" type="button">&larr; Previous</button>
           <span id="clipsPageInfo" class="dim mono">Page 1 / 1</span>
-          <button id="clipsNextBtn" class="button-chip" type="button">Next →</button>
+          <button id="clipsNextBtn" class="button-chip" type="button">Next &rarr;</button>
         </div>
         <div id="clipsContainer"><div class="empty-state">Loading...</div></div>
       </div>
-      <div class="grid-2">
-        <div id="summaryCard" class="card">
-          <h3>Video Summary <span class="tag">qwen</span></h3>
-          <div class="section-actions">
-            <div class="grow"></div>
-            <button id="summaryFullscreenBtn" class="button-chip" type="button">Fullscreen</button>
-          </div>
-          <div class="markdown-host"><div class="dim">Loading...</div></div>
+      <div id="summaryCard" class="card">
+        <h3>Video Summary <span class="tag">qwen</span></h3>
+        <div class="section-actions">
+          <div class="grow"></div>
+          <button id="summaryFullscreenBtn" class="button-chip" type="button">Fullscreen</button>
         </div>
+        <div class="markdown-host"><div class="dim">Loading...</div></div>
       </div>
       <div id="clipSummariesCard" class="card">
         <h3>Per-Clip Summaries <span class="tag">qwen</span></h3>
         <div class="section-actions">
-          <button id="clipSummaryPrevBtn" class="button-chip" type="button">← Previous</button>
+          <button id="clipSummaryPrevBtn" class="button-chip" type="button">&larr; Previous</button>
           <span id="clipSummaryPageInfo" class="dim mono">Clip 0 / 0</span>
-          <button id="clipSummaryNextBtn" class="button-chip" type="button">Next →</button>
+          <button id="clipSummaryNextBtn" class="button-chip" type="button">Next &rarr;</button>
+          <div class="grow"></div>
           <button id="clipSummaryFullscreenBtn" class="button-chip" type="button">Fullscreen</button>
         </div>
         <div class="markdown-host"><div class="dim">Loading...</div></div>
@@ -819,6 +795,7 @@ def job_details_page(job_id: str) -> str:
       let clipSummariesCache = [];
       let clipSummaryCurrentIndex = 1;
       let summaryWholeHtmlCache = '';
+
       function statusPill(status) {{
         const s = (status || '').toLowerCase();
         return `<span class="pill ${{h(s)}}">${{h(status || '—')}}</span>`;
@@ -836,7 +813,7 @@ def job_details_page(job_id: str) -> str:
         const src = String(markdown || '').replace(/\\r\\n/g, '\\n');
         if (!src.trim()) return '';
         const lines = src.split('\\n');
-        let out = [];
+        const out = [];
         let inCode = false;
         let inList = false;
         let para = [];
@@ -846,78 +823,43 @@ def job_details_page(job_id: str) -> str:
           para = [];
         }};
         const closeList = () => {{
-          if (inList) {{
-            out.push('</ul>');
-            inList = false;
-          }}
+          if (inList) {{ out.push('</ul>'); inList = false; }}
         }};
         for (const lineRaw of lines) {{
           const line = String(lineRaw || '');
           const trimmed = line.trim();
           if (trimmed.startsWith('```')) {{
-            flushPara();
-            closeList();
-            if (!inCode) {{
-              inCode = true;
-              out.push('<pre><code>');
-            }} else {{
-              inCode = false;
-              out.push('</code></pre>');
-            }}
+            flushPara(); closeList();
+            if (!inCode) {{ inCode = true; out.push('<pre><code>'); }}
+            else {{ inCode = false; out.push('</code></pre>'); }}
             continue;
           }}
-          if (inCode) {{
-            out.push(`${{h(line)}}\\n`);
-            continue;
-          }}
-          if (!trimmed) {{
-            flushPara();
-            closeList();
-            continue;
-          }}
+          if (inCode) {{ out.push(`${{h(line)}}\\n`); continue; }}
+          if (!trimmed) {{ flushPara(); closeList(); continue; }}
           const h3 = trimmed.match(/^###\\s+(.+)/);
-          if (h3) {{
-            flushPara();
-            closeList();
-            out.push(`<h3>${{inlineMd(h3[1])}}</h3>`);
-            continue;
-          }}
+          if (h3) {{ flushPara(); closeList(); out.push(`<h3>${{inlineMd(h3[1])}}</h3>`); continue; }}
           const h2 = trimmed.match(/^##\\s+(.+)/);
-          if (h2) {{
-            flushPara();
-            closeList();
-            out.push(`<h2>${{inlineMd(h2[1])}}</h2>`);
-            continue;
-          }}
+          if (h2) {{ flushPara(); closeList(); out.push(`<h2>${{inlineMd(h2[1])}}</h2>`); continue; }}
           const h1 = trimmed.match(/^#\\s+(.+)/);
-          if (h1) {{
-            flushPara();
-            closeList();
-            out.push(`<h1>${{inlineMd(h1[1])}}</h1>`);
-            continue;
-          }}
+          if (h1) {{ flushPara(); closeList(); out.push(`<h1>${{inlineMd(h1[1])}}</h1>`); continue; }}
           const li = trimmed.match(/^-\\s+(.+)/);
           if (li) {{
             flushPara();
-            if (!inList) {{
-              out.push('<ul>');
-              inList = true;
-            }}
+            if (!inList) {{ out.push('<ul>'); inList = true; }}
             out.push(`<li>${{inlineMd(li[1])}}</li>`);
             continue;
           }}
           para.push(trimmed);
         }}
-        flushPara();
-        closeList();
+        flushPara(); closeList();
         if (inCode) out.push('</code></pre>');
         return out.join('');
       }}
       function renderMarkdownCard(selector, markdown, emptyText) {{
         const card = document.querySelector(selector);
-        if (!card) return;
+        if (!card) return '';
         const host = card.querySelector('.markdown-host');
-        if (!host) return;
+        if (!host) return '';
         const html = markdownToHtml(markdown || '');
         host.innerHTML = html || `<div class="dim">${{h(emptyText || 'Not available yet.')}}</div>`;
         return html;
@@ -927,13 +869,11 @@ def job_details_page(job_id: str) -> str:
         if (!src) return [];
         const normalized = src.replace(/^#\\s+Clip\\s+Summaries\\s*/i, '').trim();
         const marker = /^###\\s+Clip:/gm;
-        const blocks = [];
         const starts = [];
         let m;
-        while ((m = marker.exec(normalized)) !== null) {{
-          starts.push(m.index);
-        }}
+        while ((m = marker.exec(normalized)) !== null) {{ starts.push(m.index); }}
         if (!starts.length) return [normalized];
+        const blocks = [];
         for (let i = 0; i < starts.length; i += 1) {{
           const start = starts[i];
           const end = (i + 1 < starts.length) ? starts[i + 1] : normalized.length;
@@ -947,8 +887,8 @@ def job_details_page(job_id: str) -> str:
         const total = clips.length;
         const pages = Math.max(1, Math.ceil(total / CLIPS_PER_PAGE));
         clipsCurrentPage = Math.max(1, Math.min(clipsCurrentPage, pages));
-        const start = (clipsCurrentPage - 1) * CLIPS_PER_PAGE;
-        const pageItems = clips.slice(start, start + CLIPS_PER_PAGE);
+        const startIdx = (clipsCurrentPage - 1) * CLIPS_PER_PAGE;
+        const pageItems = clips.slice(startIdx, startIdx + CLIPS_PER_PAGE);
         const infoEl = document.getElementById('clipsPageInfo');
         const prevBtn = document.getElementById('clipsPrevBtn');
         const nextBtn = document.getElementById('clipsNextBtn');
@@ -1024,13 +964,9 @@ def job_details_page(job_id: str) -> str:
         }};
         const overlay = document.getElementById('markdownFullscreen');
         if (overlay) {{
-          overlay.onclick = (evt) => {{
-            if (evt.target === overlay) closeFullscreenReader();
-          }};
+          overlay.onclick = (evt) => {{ if (evt.target === overlay) closeFullscreenReader(); }};
         }}
-        document.onkeydown = (evt) => {{
-          if (evt && evt.key === 'Escape') closeFullscreenReader();
-        }};
+        document.onkeydown = (evt) => {{ if (evt && evt.key === 'Escape') closeFullscreenReader(); }};
       }}
       async function loadJob() {{
         const [jobRes, artRes] = await Promise.all([
