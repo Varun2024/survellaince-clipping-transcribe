@@ -1,12 +1,10 @@
 # Railway Safety Video Intelligence
 
-> **Project status (April 2026):** **Almost complete**. Core CLI and web workflows are implemented and operational.
-
 ## Executive Summary
 
 Railway Safety Video Intelligence is an enterprise-oriented, offline video analytics solution for locopilot and in-cab behavior monitoring. It transforms raw surveillance footage into operationally actionable safety evidence, including anomaly-focused clips, fatigue analytics, alerts, transcripts, and executive-readable summaries.
 
-The platform now includes both a production-style CLI pipeline (`main.py`) and a FastAPI job-based web app (`app/api.py`) backed by SQLite job tracking. Most planned features are in place, with remaining work centered on deployment hardening and final performance tuning.
+The platform is designed to support safety operations, audit readiness, and incident review workflows with minimal manual video scanning.
 
 ## Business Outcomes
 
@@ -205,28 +203,45 @@ $$
 - Do not commit secrets to source control.
 - For regulated environments, disable remote summary generation by omitting Qwen endpoint credentials.
 
-## Current Delivery Status
+## Release Readiness And Support Model
 
-### Implemented and working
+### Release Gates
 
-- End-to-end CLI pipeline: ingest -> detection -> pose/fatigue -> segmentation -> clipping -> alerts -> transcription -> report -> optional Qwen summaries.
-- End-to-end web pipeline: upload, queue, background execution, progress tracking, artifacts browsing/download, source-video preview.
-- Stable artifact contract used by both CLI and API (`detections.json`, `segments.json`, `alerts.json`, `pose_fatigue.json`, `report.txt`, transcripts index, and Qwen markdown files).
-- Event intelligence controls: significant-event filtering, pose-driven significant fatigue events, per-label occurrence clipping, and high-priority event isolation.
-- Practical fallback behavior for missing optional dependencies (YOLO/Whisper/Qwen remote).
-- Automated tests for API endpoints, DB lifecycle, progress state, ingestion, segmentation/clip behavior, significance filtering, and transcription flow.
+- Functional Gate: end-to-end pipeline run succeeds on representative sample videos.
+- Quality Gate: clip precision and fatigue-event capture meet agreed KPI thresholds.
+- Stability Gate: regression tests pass for segmentation, clipping, reporting, and transcription.
+- Security Gate: no secrets in repository and environment settings reviewed.
+- Documentation Gate: README, configuration matrix, and runbook updated.
 
-### Remaining to finalize
+### Versioning And Change Control
 
-- Packaging/release process hardening (versioning + changelog discipline).
-- Broader real-world calibration on production-like video datasets (precision/recall tuning).
-- Operational deployment hardening (monitoring, incident runbook, and environment-specific rollout checks).
+- Use semantic versioning for release tags.
+- Maintain a change log with behavior-impact notes (especially event rules and thresholds).
+- Require reviewer sign-off for modifications to significance/priority controls.
 
 ### Known Limitations
 
 - Performance and accuracy depend on camera angle, lighting, and frame quality.
 - Extremely dense detections may still require threshold tuning for clip compactness.
 - Fatigue signals are heuristic and should be treated as operational indicators, not medical diagnosis.
+
+### Enterprise Support Model (Suggested)
+
+- L1 Operations Support: run failures, artifact generation checks, reruns.
+- L2 ML/Analytics Support: threshold tuning, event precision tuning, false-positive analysis.
+- L3 Engineering Support: pipeline defects, model integration, architecture changes.
+
+### Incident Severity Matrix (Suggested)
+
+- Sev-1: critical pipeline outage on production workflow, no report deliverable.
+- Sev-2: degraded outputs with incomplete clips/alerts.
+- Sev-3: cosmetic or non-blocking report/summarization issues.
+
+### Support SLAs (Suggested)
+
+- Sev-1 response: within 1 hour, workaround or rollback within 4 hours.
+- Sev-2 response: within 4 business hours, fix plan within 1 business day.
+- Sev-3 response: within 2 business days, patch in next planned release cycle.
 
 ## Installation And Execution
 
